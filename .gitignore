@@ -1,0 +1,14 @@
+target/
+*.class
+
+# IntelliJ project files
+/.idea
+*.iml
+*.iws
+*.ipr
+
+# Configs
+*.json
+
+# Test Files
+/src/test
