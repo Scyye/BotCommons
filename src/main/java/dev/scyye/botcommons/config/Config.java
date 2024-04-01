@@ -10,16 +10,15 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class Config extends HashMap<String, Object> {
-	String botName;
+	public static String botName;
 
 	/**
 	 * Creates a config file with the given values and bot name
 	 * @param values The values to put in the config
-	 * @param botName The name of the bot
 	 * @return The {@link Config} object
 	 */
-	public static Config makeConfig(Map<String, Object> values, String botName) {
-		String fileName = botName + ".json";
+	public static Config makeConfig(Map<String, Object> values) {
+		String fileName = botName + "-assets\\config.json";
 		if (Files.exists(Path.of(fileName))) {
 			try {
 				return makeConfig(fileName);
@@ -27,11 +26,12 @@ public class Config extends HashMap<String, Object> {
 				e.printStackTrace();
 			}
 		}
+		new File(botName+"-assets").mkdirs();
 		Config config = new Config();
 		config.putAll(values);
-		config.botName = botName;
+		Config.botName = botName;
 		try {
-			config.write();
+			config.write(botName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -48,6 +48,10 @@ public class Config extends HashMap<String, Object> {
 		return new GsonBuilder().setPrettyPrinting().create().toJson(this);
 	}
 
+	public String get(String key) {
+		return get(key, String.class);
+	}
+
 	public <T> T get(String key, Class<T> type) {
 		return type.cast(super.get(key));
 	}
@@ -62,7 +66,7 @@ public class Config extends HashMap<String, Object> {
 		return get(key.toString(), String.class);
 	}
 
-	public void write() throws IOException {
-		Files.writeString(new File(botName + ".json").toPath(), toString());
+	public void write(String botName) throws IOException {
+		Files.writeString(Path.of(botName + "-assets", "config.json"), toString());
 	}
 }

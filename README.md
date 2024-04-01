@@ -4,40 +4,33 @@ A framework for creating bots for Discord using [JDA](https://github.com/DV8From
 
 # Features
 ## Commands Framework
-To get started, call `CommandManager#init()` when starting your bot. 
-There are 2 parameters, both booleans to enable useful commands. `!help` and `!tree`. Help, displays a list of commands,
-and tree displays a tree for group & sub commands.
-
-To create a command, simply create a class that implements `TextCommand` and implement the `execute` method.
-Then, register the command using `CommandManager#addCommand(Command)`.
+To create a command, simply create a class that implements `ICommand` and implement the `execute` method.
+Make sure it is annotated with `@Command(name = "command name", help = "command help")`.
+Then, register the command using `CommandManager#addCommands(ICommand...)`.
 
 ```java
-public class PingCommand implements TextCommand {
-    @Override
-    public String getName() {
-        return "ping";
-    }
-    public String getDescription() {
-        return "Replies with pong!";
-    }
-	
-	public String getUsage() {
-        return "!ping";
-    }
-	
-    @Override
-    public void execute(CommandEvent event, String[] args) {
-        event.reply("Pong!");
-    }
+import dev.scyye.botcommons.commands.Command;
+import dev.scyye.botcommons.commands.CommandManager;
+import dev.scyye.botcommons.commands.GenericCommandEvent;
+
+@Command(name = "ping", help = "Replies with pong!", usage = "!ping")
+public class PingCommand implements ICommand {
+	@Override
+	public void execute(GenericCommandEvent event) {
+		event.reply("Pong!");
+	}
 }
 
 public class Main {
-    // ...
-    public static void main(String[] args) {
-        CommandManager.init(true, true);
-        CommandManager.addCommand(new PingCommand());
-    }
-    // ...
+	// ...
+	public static void main(String[] args) {
+		JDA jda = JDABuilder.createDefault("token")
+				.addEventListeners(new CommandManager())
+				.build();
+
+		CommandManager.addCommands(new PingCommand());
+	}
+	// ...
 }
 ```
 
@@ -52,30 +45,40 @@ To create a config, simply add this to your bot:
 ```java
 public static void main(String[] args) {
     // ...
+    Config.botName = "BotName"; // This will be used as the name of the config file
     Config config = Config.makeConfig(new HashMap<>(){{
         put("key", "value");
-        put("another key", new String[]{"Values can be anything", "Such as lists"})
+        put("another key", new String[]{"Values can be anything", "Such as lists"});
         put("a third key", new Player("PlayerName", 1000)); // Or even objects
-    }}, "Bot Name (for file name)");
+    }});
     // ...
 }
 ```
 
 Then, to get a value, simply call `config#get(String key)`. I recommend storing the `Config` instance in a variable.
 
-### ServerConfig
-To create a server config, add this to a `GuildReadyEvent` listener:
+### GuildConfig
+To create a server config, add this listener to your JDA instance, however you wish to do that.:
 ```java
-public void onGuildReady(GuildReadyEvent event) {
+public static void main(String[] args) {
     // ...
-        ServerConfig serverConfig = ServerConfig.createConfig(event.getGuild().getId(), new HashMap<>() {{
-            put("key", "value");
-            put("another key", new String[]{"Values can be anything", "Such as lists"})
-            put("a third key", new Player("PlayerName", 1000)); // Or even objects
-        }});
+	JDA jda = JDABuilder.createDefault("token")
+			.addEventListeners(new ConfigManager(new HashMap<>(){{
+				put("key", "value");
+				put("another key", new String[]{"Values can be anything", "Such as lists"});
+				put("a third key", new Player("PlayerName", 1000)); // Or even objects
+			}}))
+			.build();
     // ...
 }
 ```
+
+### ***__NOTE:__ This will automatically create the `/sql` and `/config` commands*** 
+
+
+# Disclaimer
+EVERYTHING AFTER THIS POINT IS NOT ACCURATE. I WILL UPDATE IT SOON.
+
 
 ## Menu Framework
 ### ***__NOTE:__ YOU MUST call `JDA.addEventListener(PaginationListener)` to enable the menu framework.***
@@ -83,5 +86,6 @@ public void onGuildReady(GuildReadyEvent event) {
 To create a menu, simply call `PaginatedMenuHandler#addMenu(PaginatedMenuHandler#buildMenu())`, and pass in the data for each page.
 
 You can also reply to commands with a menu, by calling `CommandEvent#replyMenu(PaginatedMenuHandler#buildMenu())`.
+
 
 ### ***__NOTE:__ YOU MUST call `JDA.addEventListener(PaginationListener)` to enable the menu framework.***
