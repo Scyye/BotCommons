@@ -1,6 +1,7 @@
 package dev.scyye.botcommons.commands;
 
 import com.google.gson.Gson;
+import net.dv8tion.jda.annotations.ForRemoval;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 import java.util.Arrays;
@@ -10,6 +11,11 @@ import java.util.function.Predicate;
 import static dev.scyye.botcommons.commands.CommandManager.commands;
 import static dev.scyye.botcommons.commands.CommandManager.getCommand;
 
+/**
+ * Use the new {@link dev.scyye.botcommons.methodcommands.MethodCommandManager} and other method command classes instead
+ */
+@Deprecated
+@ForRemoval
 public class CommandInfo {
 
 	/**
@@ -20,7 +26,7 @@ public class CommandInfo {
 	public String[] aliases;
 	public Option[] args;
 	public Command.Scope scope;
-	public Command.Category category;
+	public String category;
 	public String permission;
 	/**
 	 * The command usage
@@ -95,7 +101,11 @@ public class CommandInfo {
 	}
 
 	public static CommandInfo from(GenericCommandEvent event) {
-		return from(getCommand(event.getCommandName()));
+		boolean sub = event.getSubcommandName() != null || event.getSubcommandGroup() != null;
+		String command = sub ? event.getCommandName() + (event.getSubcommandGroup()!=null? " " + event.getSubcommandGroup() + " ": " ") +
+				event.getSubcommandName() : event.getCommandName();
+
+		return from(getCommand(command));
 	}
 
 

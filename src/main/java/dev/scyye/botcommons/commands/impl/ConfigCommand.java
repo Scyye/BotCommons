@@ -6,18 +6,19 @@ import dev.scyye.botcommons.commands.CommandInfo;
 import dev.scyye.botcommons.commands.GenericCommandEvent;
 import dev.scyye.botcommons.commands.ICommand;
 import dev.scyye.botcommons.config.GuildConfig;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 import java.util.stream.Collectors;
 
-@Command(name = "config", help = "Config command")
+@Command(name = "config", help = "Config command", scope = Command.Scope.GUILD)
 public class ConfigCommand implements ICommand {
 
 	@Override
 	public void handle(GenericCommandEvent event) {
-		String key = event.getArg(0, String.class);
-		Object value = event.getArg(1, Object.class);
+		String key = event.getArg("key", String.class);
+		Object value = event.getArg("value", Object.class);
 
 		if (key == null && value == null) {
 			event.replySuccess(new GsonBuilder().setPrettyPrinting().create().toJson(event.getConfig()));
@@ -31,6 +32,10 @@ public class ConfigCommand implements ICommand {
 		}
 
 		if (event.getConfig().set(key, value)) {
+			if (!event.getGuild().getMember(event.getUser()).hasPermission(Permission.MANAGE_SERVER)) {
+				event.replyError("You do not have permission to set values.");
+				return;
+			}
 			event.replySuccess(STR."Set \{key} to \{value}");
 			return;
 		}

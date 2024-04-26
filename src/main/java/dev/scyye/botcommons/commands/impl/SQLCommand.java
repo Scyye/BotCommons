@@ -9,11 +9,11 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 import java.sql.ResultSet;
 
-@Command(name = "sql", help = "Run a SQL command", aliases = {"s"}, permission = "owner", category = Command.Category.YOU_CANT_USE_THIS_LOL_LOSER_GET_OWNED)
+@Command(name = "sql", help = "Run a SQL command", aliases = {"s"}, permission = "admin", category = "OWNER")
 public class SQLCommand implements ICommand {
 	@Override
 	public void handle(GenericCommandEvent event) {
-		String sql = event.getArg(0, String.class);
+		String sql = event.getArg("sql", String.class);
 
 		try {
 			boolean query = sql.toLowerCase().startsWith("select");

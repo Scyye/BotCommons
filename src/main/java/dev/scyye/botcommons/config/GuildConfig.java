@@ -48,7 +48,7 @@ public class GuildConfig extends HashMap<String, Object> {
 	}
 
 	public static GuildConfig create(HashMap<String, Object> values, String guildId) {
-		System.out.println(gson.toJson(def));
+		//System.out.println(gson.toJson(def));
 		String sql =
 				STR."CREATE TABLE IF NOT EXISTS config(guild TEXT NOT NULL PRIMARY KEY, \{
 						String.join(", ", def.keySet().stream().filter(key ->
@@ -97,7 +97,7 @@ public class GuildConfig extends HashMap<String, Object> {
 		assert json != null;
 		json = json.substring(1, json.length()-1);
 
-		System.out.println(json);
+		//System.out.println(json);
 
 		return gson.fromJson(json, GuildConfig.class);
 		/*

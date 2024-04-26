@@ -1,6 +1,7 @@
 package dev.scyye.botcommons.cache;
 
 import dev.scyye.botcommons.utilities.SQLiteUtils;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -20,13 +21,16 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CacheManager extends ListenerAdapter {
+	private static JDA jda;
+
 	public static HashMap<Guild, List<Member>> guildMemberCache = new HashMap<>();
 	public static HashMap<User, List<Guild>> mutualGuildsCache = new HashMap<>();
 	public static HashMap<MessageChannel, List<MessageStructure>> channelMessageCache = new HashMap<>();
 	public static HashMap<Member, List<MessageStructure>> userMessageCache = new HashMap<>();
 	public static HashMap<String, User> userCache = new HashMap<>();
 
-	static void init() {
+	static void init(JDA jda) {
+		jda.addEventListener(new CacheManager());
 		SQLiteUtils.createCache(guildMemberCache, "guild_member_cache");
 		SQLiteUtils.createCache(mutualGuildsCache, "mutual_guilds_cache");
 		SQLiteUtils.createCache(channelMessageCache, "channel_message_cache");

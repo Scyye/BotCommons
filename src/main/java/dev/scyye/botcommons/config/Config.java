@@ -11,6 +11,7 @@ import java.util.*;
 
 public class Config extends HashMap<String, Object> {
 	public static String botName;
+	public static String ownerId;
 
 	/**
 	 * Creates a config file with the given values and bot name

@@ -1,21 +1,16 @@
-package dev.scyye.botcommons.commands;
+package dev.scyye.botcommons.methodcommands;
 
-import net.dv8tion.jda.annotations.ForRemoval;
+import dev.scyye.botcommons.commands.Command;
 
+// usable on methods
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Use the new {@link dev.scyye.botcommons.methodcommands.MethodCommandManager} and other method command classes instead
- */
-@Deprecated
-@ForRemoval
-// usable on classes
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Command {
+@Target({ElementType.METHOD})
+public @interface MethodCommand {
 	String name();
 	String help();
 	String[] aliases() default {};

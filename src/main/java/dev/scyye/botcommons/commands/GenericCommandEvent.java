@@ -1,8 +1,10 @@
 package dev.scyye.botcommons.commands;
 
+import com.google.gson.Gson;
 import dev.scyye.botcommons.cache.CacheManager;
 import dev.scyye.botcommons.config.GuildConfig;
 import dev.scyye.botcommons.menu.MenuManager;
+import dev.scyye.botcommons.methodcommands.MethodCommandInfo;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -39,6 +41,8 @@ public class GenericCommandEvent {
 	private final SlashCommandInteractionEvent slashCommandEvent;
 	private final MessageReceivedEvent messageReceivedEvent;
 
+	ReplyContext replyContext;
+
 	private GenericCommandEvent(Type type, SlashCommandInteractionEvent slashCommandEvent, MessageReceivedEvent messageReceivedEvent) {
 		this.type = type;
 		this.slashCommandEvent = slashCommandEvent;
@@ -46,11 +50,15 @@ public class GenericCommandEvent {
 	}
 
 	public static GenericCommandEvent of(@NotNull SlashCommandInteractionEvent event) {
-		return new GenericCommandEvent(Type.SLASH_COMMAND, event, null);
+		GenericCommandEvent e = new GenericCommandEvent(Type.SLASH_COMMAND, event, null);
+		e.replyContext = new ReplyContext(event);
+		return e;
 	}
 
 	public static GenericCommandEvent of(@NotNull MessageReceivedEvent event) {
-		return new GenericCommandEvent(Type.MESSAGE_COMMAND, null, event);
+		GenericCommandEvent e = new GenericCommandEvent(Type.MESSAGE_COMMAND, null, event);
+		e.replyContext = new ReplyContext(event);
+		return e;
 	}
 
 	public JDA getJDA() {
@@ -85,6 +93,10 @@ public class GenericCommandEvent {
 		return getUser().getId();
 	}
 
+	public Member getMember() {
+		return isSlashCommand() ? slashCommandEvent.getMember() : messageReceivedEvent.getMember();
+	}
+
 	public SlashCommandInteraction getSlashCommandInteraction() {
 		return isSlashCommand() ? slashCommandEvent.getInteraction() : null;
 	}
@@ -107,6 +119,22 @@ public class GenericCommandEvent {
 		return result.split(" ")[0];
 	}
 
+	public String getSubcommandName() {
+		if (isSlashCommand()) {
+			return slashCommandEvent.getSubcommandName();
+		}
+		if (messageReceivedEvent.getMessage().getContentRaw().split(" ").length < 2)
+			return null;
+		return messageReceivedEvent.getMessage().getContentRaw().split(" ")[1];
+	}
+
+	public String getSubcommandGroup() {
+		if (isSlashCommand()) {
+			return slashCommandEvent.getSubcommandGroup();
+		}
+		return null;
+	}
+
 	boolean isSlashCommand() {
 		return type == Type.SLASH_COMMAND;
 	}
@@ -115,8 +143,8 @@ public class GenericCommandEvent {
 		if (isSlashCommand()) {
 			return Arrays.stream(slashCommandEvent.getOptions().toArray(OptionMapping[]::new)).map(
 					optionMapping -> {
-						CommandInfo.Option option = CommandInfo.from(this).getOption(optionMapping.getName());
-						var data = switch (option.type()) {
+						MethodCommandInfo.Option option = MethodCommandInfo.from(this).getOption(optionMapping.getName());
+						var data = switch (option.getType()) {
 							case UNKNOWN -> null;
 							case SUB_COMMAND -> null;
 							case SUB_COMMAND_GROUP -> null;
@@ -146,23 +174,23 @@ public class GenericCommandEvent {
 
 		List<Data> result = new ArrayList<>();
 
-		for (int i = 0; i < CommandInfo.from(this).args.length; i++) {
+		for (int i = 0; i < MethodCommandInfo.from(this).args.length; i++) {
 			if (i >= args.length)
 				break;
 
-			var arg = CommandInfo.from(this).args[i];
-			if (i == CommandInfo.from(this).args.length - 1 && arg.type() == OptionType.STRING) {
+			var arg = MethodCommandInfo.from(this).args[i];
+			if (i == MethodCommandInfo.from(this).args.length - 1 && arg.getType() == OptionType.STRING) {
 				result.add(new Data(arg, String.join(" ", Arrays.copyOfRange(args, i, args.length))));
 				break;
 			}
-			result.add(new Data(arg, parse(args[i], arg.type(), getChannel())));
+			result.add(new Data(arg, parse(args[i], arg.getType(), getChannel())));
 		}
 
 
 		return result.toArray(Data[]::new);
 	}
 
-	public record Data(CommandInfo.Option option, Object value) {
+	public record Data(MethodCommandInfo.Option option, Object value) {
 	}
 
 	private <T> T parse(String arg, OptionType type, MessageChannel channel) {
@@ -268,26 +296,10 @@ public class GenericCommandEvent {
 		return getArgs()[index];
 	}
 
-	public <T> T getArg(int index, Class<T> type) {
-		CommandInfo from = CommandInfo.from(this);
-		CommandInfo.Option option = from.args[index];
-
-		if (getArgs().length <= index) {
-			if (option.isRequired()) {
-				if (option.defaultValue() == null)
-					return null;
-				return type.cast(option.defaultValue().apply(this));
-			}
-			return type.cast(option.defaultValue().apply(this));
-		}
-		if (getArgs().length <= index)
-			return null;
-		return type.cast(getArgs()[index].value);
-	}
 
 	public <T> T getArg(String name, Class<T> type) {
-		CommandInfo from = CommandInfo.from(this);
-		CommandInfo.Option option = from.getOption(name);
+		MethodCommandInfo from = MethodCommandInfo.from(this);
+		MethodCommandInfo.Option option = from.getOption(name);
 
 		if (option == null) {
 			return null;
@@ -295,8 +307,9 @@ public class GenericCommandEvent {
 
 		if (!this.isSlashCommand()) {
 			for (Data arg :getArgs()) {
-				if (option.validateArg().test(arg.value.toString()))
+				if (arg.option.getName().equals(name)) {
 					return type.cast(arg.value);
+				}
 			}
 
 			return null;
@@ -305,7 +318,7 @@ public class GenericCommandEvent {
 
 
 		for (Data arg : getArgs()) {
-			if (arg.option.name().equals(name)) {
+			if (arg.option.getName().equals(name)) {
 				return type.cast(arg.value);
 			}
 		}
@@ -313,11 +326,12 @@ public class GenericCommandEvent {
 
 
 		if (option.isRequired()) {
-			if (option.defaultValue() == null)
-				return null;
-			return type.cast(option.defaultValue().apply(this));
+			if (type==String.class)
+				return type.cast(option.getDefaultValue());
+			return new Gson().fromJson(option.getDefaultValue(), type);
 		}
-		return type.cast(option.defaultValue().apply(this));
+
+		return null;
 	}
 
 	public GuildConfig getConfig() {
@@ -325,6 +339,8 @@ public class GenericCommandEvent {
 	}
 
 	public void reply(String message) {
+		this.replyContext.content(message).reply();
+		/*
 		if (isSlashCommand()) {
 			if (defer) {
 				slashCommandEvent.getHook().sendMessage(message).queue();
@@ -333,7 +349,7 @@ public class GenericCommandEvent {
 			slashCommandEvent.reply(message).queue();
 		} else {
 			messageReceivedEvent.getMessage().reply(message).queue();
-		}
+		}*/
 	}
 
 	public void deferReply() {
@@ -343,6 +359,8 @@ public class GenericCommandEvent {
 	}
 
 	public void reply(String message, Consumer<Message> success) {
+		this.replyContext.content(message).reply(success);
+		/*
 		if (isSlashCommand()) {
 			if (defer) {
 				slashCommandEvent.getHook().sendMessage(message).queue(success);
@@ -351,26 +369,31 @@ public class GenericCommandEvent {
 			slashCommandEvent.reply(message).queue(hook -> hook.retrieveOriginal().queue(success));
 		} else {
 			messageReceivedEvent.getMessage().reply(message).queue(success);
-		}
+		}*/
 	}
 
 	public void replySuccess(String message) {
+		this.replyContext.embed(new EmbedBuilder().setColor(0x00ff00).setDescription(message)).reply();/*
 		EmbedBuilder embed = new EmbedBuilder()
 				.setColor(0x00ff00)
 				.setDescription(message);
 
-		replyEmbed(embed);
+		replyEmbed(embed);*/
 	}
 
 	public void replyError(String message) {
+		this.replyContext.embed(new EmbedBuilder().setColor(0xff0000).setDescription(message)).reply();/*
 		EmbedBuilder embed = new EmbedBuilder()
 				.setColor(0xff0000)
 				.setDescription(message);
 
-		replyEmbed(embed);
+		replyEmbed(embed);*/
 	}
 
 	public void reply(MessageCreateData message) {
+		this.replyContext.content(message.getContent());
+		message.getEmbeds().forEach(e -> this.replyContext.embed(new EmbedBuilder(e)));
+		this.replyContext.reply();/*
 		if (isSlashCommand()) {
 			if (defer) {
 				slashCommandEvent.getHook().sendMessage(message).queue();
@@ -379,10 +402,11 @@ public class GenericCommandEvent {
 			slashCommandEvent.reply(message).queue();
 		} else {
 			messageReceivedEvent.getMessage().reply(message).queue();
-		}
+		}*/
 	}
 
-	public void replyEphemeral(String message) throws IllegalStateException {
+	public void replyEphemeral(String message) {
+		this.replyContext.content(message).ephemeral().reply();/*
 		if (isSlashCommand()) {
 			if (defer) {
 				slashCommandEvent.getHook().sendMessage(message).setEphemeral(true).queue();
@@ -394,10 +418,11 @@ public class GenericCommandEvent {
 				msg.delete().queueAfter(2, TimeUnit.SECONDS);
 				getMessage().delete().queue();
 			});
-		}
+		}*/
 	}
 
 	public void replyEmbed(EmbedBuilder embed) {
+		this.replyContext.embed(embed).reply();/*
 		if (isSlashCommand()) {
 			if (defer) {
 				slashCommandEvent.getHook().sendMessageEmbeds(embed.build()).setEphemeral(true).queue();
@@ -406,14 +431,15 @@ public class GenericCommandEvent {
 			slashCommandEvent.replyEmbeds(embed.build()).queue();
 		} else {
 			messageReceivedEvent.getMessage().replyEmbeds(embed.build()).queue();
-		}
+		}*/
 	}
 
 	public void replyMenu(String menuId, Object... args) {
+		this.replyContext.menu(menuId, args).reply();/*
 		if (isSlashCommand()) {
 			MenuManager.replyMenu(menuId, slashCommandEvent.getHook(), args);
 		} else {
 			MenuManager.replyMenu(menuId, messageReceivedEvent.getMessage(), args);
-		}
+		}*/
 	}
 }

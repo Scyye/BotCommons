@@ -9,10 +9,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static dev.scyye.botcommons.commands.CommandManager.getCommand;
 
@@ -30,14 +27,22 @@ public class HelpMenu extends PageMenu implements ICommand {
 		}
 	};
 
+	public HelpMenu() {
+
+	}
+
+	public HelpMenu(SelfUser me) {
+		this.me = me;
+	}
+
 	@Override
 	public void handle(GenericCommandEvent event) {
-		me = event.getJDA().getSelfUser();
-		ICommand command = getCommand(event.getArg(0, String.class));
+		event.deferReply();
+		ICommand command = getCommand(event.getArg("command", String.class));
 
 		if (command == null) {
 			// No command was specified, display help for all commands
-			event.replyMenu("help-menu");
+			event.replyMenu("help-menu", event.getJDA().getSelfUser());
 			return;
 		}
 
@@ -46,7 +51,7 @@ public class HelpMenu extends PageMenu implements ICommand {
 		String usage = getUsage(info, event);
 
 		EmbedBuilder embed = new EmbedBuilder()
-				.setTitle(STR."Help for \{event.getArg(0, String.class)}")
+				.setTitle(STR."Help for \{event.getArg("command", String.class)}")
 				.setDescription(info.help)
 				.addField("Usage", MarkdownUtil.codeblock(usage), false);
 
@@ -149,14 +154,18 @@ public class HelpMenu extends PageMenu implements ICommand {
 
 		int commandsOnPage = 0;
 
-		for (Command.Category category : Command.Category.values()) {
-			if (category == Command.Category.YOU_CANT_USE_THIS_LOL_LOSER_GET_OWNED)
+		String[] categories = CommandManager.commands.stream().map(
+				command -> command.getCommandInfo().category.replace("_", " ")
+		).distinct().toArray(String[]::new);
+
+		for (String category : categories) {
+			if (Objects.equals(category, "HIDDEN"))
 				continue;
 
 			EmbedBuilder temp = new EmbedBuilder()
 					.setAuthor(me.getName(), null, me.getAvatarUrl())
-					.setTitle(category.name().replace("_", " "))
-					.setFooter("Use =help [command] for a more in-depth description of any command");
+					.setTitle(category.replace("_", " "))
+					.setFooter("Use /help [command] for a more in-depth description of any command");
 			for (ICommand command : CommandManager.commands) {
 				if (commandsOnPage == 5) {
 					commandsOnPage = 0;
@@ -164,8 +173,8 @@ public class HelpMenu extends PageMenu implements ICommand {
 					temp.clearFields();
 				}
 
-				if (command.getCommandInfo().category == category) {
-					temp.addField(MarkdownUtil.bold(command.getCommandInfo().name) + " " + MarkdownUtil.monospace(getUsage(command.getCommandInfo(), null)), command.getCommandInfo().help, false);
+				if (Objects.equals(command.getCommandInfo().category, category)) {
+					temp.addField(STR."\{MarkdownUtil.bold(command.getCommandInfo().name)} \{MarkdownUtil.monospace(getUsage(command.getCommandInfo(), null))}", command.getCommandInfo().help, false);
 					commandsOnPage++;
 				}
 			}
