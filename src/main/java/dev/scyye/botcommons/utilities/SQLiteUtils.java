@@ -22,10 +22,10 @@ public class SQLiteUtils {
 	// Method to establish a connection to the database
 	private static Connection connect() throws SQLException {
 		// Define the database URL as a constant
-		String DATABASE_URL = "jdbc:sqlite:" + "K:\\sqlite\\"+Config.botName+".sqlite";
+		String DATABASE_URL = "jdbc:sqlite:K:\\sqlite\\"+Config.botName+".sqlite";
 		try {
-			if (!Files.exists(Path.of(Config.botName+"-assets", "database.sqlite")))
-				Files.createFile(Path.of(Config.botName+"-assets", "database.sqlite"));
+			if (!Files.exists(Path.of("K:\\", "sqlite", Config.botName+".sqlite")))
+				Files.createFile(Path.of("K:\\", "sqlite", Config.botName+".sqlite"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
