@@ -21,8 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CacheManager extends ListenerAdapter {
-	private static JDA jda;
-
 	public static HashMap<Guild, List<Member>> guildMemberCache = new HashMap<>();
 	public static HashMap<User, List<Guild>> mutualGuildsCache = new HashMap<>();
 	public static HashMap<MessageChannel, List<MessageStructure>> channelMessageCache = new HashMap<>();
