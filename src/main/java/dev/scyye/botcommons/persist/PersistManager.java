@@ -4,10 +4,8 @@ import dev.scyye.botcommons.utilities.SQLiteUtils;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
+@Deprecated(since = "1.6", forRemoval = true)
 public class PersistManager {
 	// Save the objects and fields, along with the values, and keys defined in Persist.value()
 	// a save function should be used to write the data to the database
