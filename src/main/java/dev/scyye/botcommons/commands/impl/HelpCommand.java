@@ -1,22 +1,20 @@
 package dev.scyye.botcommons.commands.impl;
 
-import dev.scyye.botcommons.commands.Command;
-import dev.scyye.botcommons.commands.CommandManager;
 import dev.scyye.botcommons.commands.GenericCommandEvent;
-import dev.scyye.botcommons.commands.ICommand;
 import dev.scyye.botcommons.config.Config;
 import dev.scyye.botcommons.config.GuildConfig;
 import dev.scyye.botcommons.menu.Menu;
 import dev.scyye.botcommons.menu.impl.PageMenu;
+import dev.scyye.botcommons.methodcommands.MethodCommand;
+import dev.scyye.botcommons.methodcommands.MethodCommandHolder;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
+/*
 @Menu(id = "help-menu")
-@Command(name = "help", help = "Get help on commands", category = "GENERAL")
-public class HelpCommand extends PageMenu implements ICommand {
+@MethodCommandHolder
+public class HelpCommand extends PageMenu {
 	private final List<EmbedBuilder> commands;
 
 	public HelpCommand(List<EmbedBuilder> commands) {
@@ -27,8 +25,8 @@ public class HelpCommand extends PageMenu implements ICommand {
 		this.commands = new ArrayList<>();
 	}
 
-	@Override
-	public void handle(GenericCommandEvent event) {
+	@MethodCommand(name = "help", help = "Shows help")
+	public static void help(GenericCommandEvent event) {
 		List<String> validCommands = new ArrayList<>();
 		List<String> validUsages = new ArrayList<>();
 		List<String> validDescriptions = new ArrayList<>();
@@ -56,6 +54,7 @@ public class HelpCommand extends PageMenu implements ICommand {
 
 	@Override
 	public List<EmbedBuilder> getPageData() {
-		return null;
+		return List.of();
 	}
 }
+*/

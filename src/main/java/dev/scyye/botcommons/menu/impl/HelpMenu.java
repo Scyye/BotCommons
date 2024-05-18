@@ -3,17 +3,13 @@ package dev.scyye.botcommons.menu.impl;
 import dev.scyye.botcommons.commands.*;
 import dev.scyye.botcommons.menu.Menu;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
 
 import java.util.*;
-
-import static dev.scyye.botcommons.commands.CommandManager.getCommand;
-
-@Command(name = "help", help = "Displays a help menu")
+/*
 @Menu(id = "help-menu")
 public class HelpMenu extends PageMenu implements ICommand {
 	SelfUser me;
@@ -200,8 +196,7 @@ public class HelpMenu extends PageMenu implements ICommand {
 		}
 		result.add(temp.build());
 
-		 */
 
 		return result;
 	}
-}
+}*/
