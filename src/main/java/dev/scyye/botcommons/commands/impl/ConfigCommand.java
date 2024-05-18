@@ -8,12 +8,9 @@ import dev.scyye.botcommons.methodcommands.MethodCommand;
 import dev.scyye.botcommons.methodcommands.MethodCommandHolder;
 import dev.scyye.botcommons.methodcommands.Param;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @MethodCommandHolder
