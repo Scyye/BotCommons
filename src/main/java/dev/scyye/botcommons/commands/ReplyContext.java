@@ -86,11 +86,11 @@ public class ReplyContext {
 		return this;
 	}
 
-	public boolean reply() {
-		return reply(ignored -> {});
+	public boolean finish() {
+		return finish(ignored -> {});
 	}
 
-	public boolean reply(Consumer<Message> consumer) {
+	public boolean finish(Consumer<Message> consumer) {
 		if (receivedEvent != null) {
 			if (menuId != null) {
 				MenuManager.replyMenu(menuId, receivedEvent.getMessage(), menuArgs.toArray());

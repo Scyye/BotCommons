@@ -336,18 +336,8 @@ public class GenericCommandEvent {
 		return GuildConfig.fromGuildId(getGuildId());
 	}
 
-	public void reply(String message) {
-		this.replyContext.content(message).reply();
-		/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessage(message).queue();
-				return;
-			}
-			slashCommandEvent.reply(message).queue();
-		} else {
-			messageReceivedEvent.getMessage().reply(message).queue();
-		}*/
+	public ReplyContext reply(String message) {
+		return this.replyContext.content(message);
 	}
 
 	public void deferReply() {
@@ -355,88 +345,33 @@ public class GenericCommandEvent {
 			slashCommandEvent.deferReply().queue();
 	}
 
-	public void reply(String message, Consumer<Message> success) {
-		this.replyContext.content(message).reply(success);
-		/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessage(message).queue(success);
-				return;
-			}
-			slashCommandEvent.reply(message).queue(hook -> hook.retrieveOriginal().queue(success));
-		} else {
-			messageReceivedEvent.getMessage().reply(message).queue(success);
-		}*/
+	public boolean reply(String message, Consumer<Message> success) {
+		return this.replyContext.content(message).finish(success);
 	}
 
-	public void replySuccess(String message) {
-		this.replyContext.embed(new EmbedBuilder().setColor(0x00ff00).setDescription(message)).reply();/*
-		EmbedBuilder embed = new EmbedBuilder()
-				.setColor(0x00ff00)
-				.setDescription(message);
-
-		replyEmbed(embed);*/
+	public ReplyContext replySuccess(String message) {
+		return this.replyContext.embed(new EmbedBuilder().setColor(0x00ff00).setDescription(message));
 	}
 
-	public void replyError(String message) {
-		this.replyContext.embed(new EmbedBuilder().setColor(0xff0000).setDescription(message)).reply();/*
-		EmbedBuilder embed = new EmbedBuilder()
-				.setColor(0xff0000)
-				.setDescription(message);
-
-		replyEmbed(embed);*/
+	public ReplyContext replyError(String message) {
+		return this.replyContext.embed(new EmbedBuilder().setColor(0xff0000).setDescription(message));
 	}
 
-	public void reply(MessageCreateData message) {
+	public ReplyContext reply(MessageCreateData message) {
 		this.replyContext.content(message.getContent());
 		message.getEmbeds().forEach(e -> this.replyContext.embed(new EmbedBuilder(e)));
-		this.replyContext.reply();/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessage(message).queue();
-				return;
-			}
-			slashCommandEvent.reply(message).queue();
-		} else {
-			messageReceivedEvent.getMessage().reply(message).queue();
-		}*/
+		return this.replyContext;
 	}
 
-	public void replyEphemeral(String message) {
-		this.replyContext.content(message).ephemeral().reply();/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessage(message).setEphemeral(true).queue();
-				return;
-			}
-			slashCommandEvent.reply(message).setEphemeral(true).queue();
-		} else {
-			reply(message, msg -> {
-				msg.delete().queueAfter(2, TimeUnit.SECONDS);
-				getMessage().delete().queue();
-			});
-		}*/
+	public ReplyContext replyEphemeral(String message) {
+		return this.replyContext.content(message).ephemeral();
 	}
 
-	public void replyEmbed(EmbedBuilder embed) {
-		this.replyContext.embed(embed).reply();/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessageEmbeds(embed.build()).setEphemeral(true).queue();
-				return;
-			}
-			slashCommandEvent.replyEmbeds(embed.build()).queue();
-		} else {
-			messageReceivedEvent.getMessage().replyEmbeds(embed.build()).queue();
-		}*/
+	public ReplyContext replyEmbed(EmbedBuilder embed) {
+		return this.replyContext.embed(embed);
 	}
 
-	public void replyMenu(String menuId, Object... args) {
-		this.replyContext.menu(menuId, args).reply();/*
-		if (isSlashCommand()) {
-			MenuManager.replyMenu(menuId, slashCommandEvent.getHook(), args);
-		} else {
-			MenuManager.replyMenu(menuId, messageReceivedEvent.getMessage(), args);
-		}*/
+	public ReplyContext replyMenu(String menuId, Object... args) {
+		return this.replyContext.menu(menuId, args);
 	}
 }
