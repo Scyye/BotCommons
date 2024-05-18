@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dev.scyye.botcommons.commands.GenericCommandEvent;
 import lombok.Getter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,7 +33,10 @@ public class MethodCommandInfo {
 		return Arrays.stream(args).filter(option -> option.name.equals(name)).findFirst().orElse(null);
 	}
 
-	public static MethodCommandInfo from(Method command) {
+	public static MethodCommandInfo from(@Nullable Method command) {
+		if (command == null)
+			return null;
+
 		MethodCommand annotation = command.getAnnotation(MethodCommand.class);
 		if (annotation == null) {
 			throw new IllegalArgumentException("Command must have @Command annotation");

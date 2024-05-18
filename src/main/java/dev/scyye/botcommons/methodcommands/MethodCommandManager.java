@@ -23,14 +23,14 @@ public class MethodCommandManager extends ListenerAdapter {
 	private static final HashMap<MethodCommandInfo, Method> commands = new HashMap<>();
 	private static final HashMap<String, List<Map.Entry<MethodCommandInfo, Method>>> subcommands = new HashMap<>();
 
-	public static void addCommands(Object... holders) {
+	public static void addCommands(Class<?>... holders) {
 		for (var holder : holders) {
-			MethodCommandHolder meta = holder.getClass().getAnnotation(MethodCommandHolder.class);
+			MethodCommandHolder meta = holder.getAnnotation(MethodCommandHolder.class);
 			if (meta == null) {
-				throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getClass().getName());
+				throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getName());
 			}
 			if (meta.group().equalsIgnoreCase("n/a")) {
-				for (var cmd : holder.getClass().getMethods()) {
+				for (var cmd : holder.getMethods()) {
 					if (cmd.isAnnotationPresent(MethodCommand.class)) {
 						MethodCommandInfo info = MethodCommandInfo.from(cmd);
 						MethodCommandManager.commands.put(info, cmd);
@@ -41,7 +41,7 @@ public class MethodCommandManager extends ListenerAdapter {
 				continue;
 			}
 
-			for (var cmd : holder.getClass().getMethods()) {
+			for (var cmd : holder.getMethods()) {
 				if (cmd.isAnnotationPresent(MethodCommand.class)) {
 					MethodCommandInfo info = MethodCommandInfo.from(cmd);
 					MethodCommandManager.commands.put(info, cmd);
@@ -50,16 +50,16 @@ public class MethodCommandManager extends ListenerAdapter {
 		}
 	}
 
-	public static void addSubcommands(Object holder) {
-		MethodCommandHolder meta = holder.getClass().getAnnotation(MethodCommandHolder.class);
+	public static void addSubcommands(Class<?> holder) {
+		MethodCommandHolder meta = holder.getAnnotation(MethodCommandHolder.class);
 		if (meta == null) {
-			throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getClass().getName());
+			throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getName());
 		}
 		if (meta.group().equalsIgnoreCase("n/a")) {
 			throw new IllegalArgumentException("MethodCommandHolder annotation group is not set to a valid value");
 		}
 		String parent = meta.group();
-		for (var cmd : holder.getClass().getMethods()) {
+		for (var cmd : holder.getMethods()) {
 			if (cmd.isAnnotationPresent(MethodCommand.class)) {
 				MethodCommandInfo info = MethodCommandInfo.from(cmd);
 				subcommands.putIfAbsent(parent, new ArrayList<>());

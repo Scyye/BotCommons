@@ -9,12 +9,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
+@SuppressWarnings("unused")
 public class ConfigManager extends ListenerAdapter {
 	static boolean ready = false;
 	GuildConfig def;
 	public ConfigManager(HashMap<String, Object> config) {
 		this.def=GuildConfig.fromHashMap(config);
-		MethodCommandManager.addCommands(new ConfigCommand(), new SQLCommand());
+		MethodCommandManager.addCommands(ConfigCommand.class, SQLCommand.class);
 		ready=true;
 	}
 
