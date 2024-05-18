@@ -82,7 +82,7 @@ public class GenericCommandEvent {
 	}
 
 	public String getGuildId() {
-		return getGuild().getId();
+		return isGuild()? getGuild().getId():"-1";
 	}
 
 	public User getUser() {
