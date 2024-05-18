@@ -5,6 +5,7 @@ import dev.scyye.botcommons.utilities.SQLiteUtils;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 
+@SuppressWarnings("all")
 @Deprecated(since = "1.6", forRemoval = true)
 public class PersistManager {
 	// Save the objects and fields, along with the values, and keys defined in Persist.value()

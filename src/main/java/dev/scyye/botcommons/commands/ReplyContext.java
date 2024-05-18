@@ -160,9 +160,9 @@ public class ReplyContext {
 			}
 
 			if (action!=null)
-				action.setEphemeral(ephemeral).queue(hook -> {
-					hook.retrieveOriginal().queue(consumer);
-				});
+				action.setEphemeral(ephemeral).queue(hook ->
+					hook.retrieveOriginal().queue(consumer)
+				);
 			else if (action2!=null)
 				action2.setEphemeral(ephemeral).queue(consumer);
 			this.menuId = null;
