@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class CacheManager extends ListenerAdapter {
 	public static HashMap<Guild, List<Member>> guildMemberCache = new HashMap<>();
 	public static HashMap<User, List<Guild>> mutualGuildsCache = new HashMap<>();

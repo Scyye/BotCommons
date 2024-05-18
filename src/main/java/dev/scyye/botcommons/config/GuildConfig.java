@@ -3,8 +3,6 @@ package dev.scyye.botcommons.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.scyye.botcommons.utilities.SQLiteUtils;
-import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
