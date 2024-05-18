@@ -1,10 +1,7 @@
 package dev.scyye.botcommons.methodcommands;
 
 import com.google.gson.Gson;
-import dev.scyye.botcommons.commands.Command;
-import dev.scyye.botcommons.methodcommands.MethodCommandInfo;
 import dev.scyye.botcommons.commands.GenericCommandEvent;
-import dev.scyye.botcommons.commands.ICommand;
 import lombok.Getter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
@@ -12,8 +9,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static dev.scyye.botcommons.methodcommands.MethodCommandManager.getCommand;
@@ -65,7 +60,7 @@ public class MethodCommandInfo {
 					.type(paramAnnotation.type())
 					.required(paramAnnotation.required())
 					.autocomplete(paramAnnotation.autocomplete())
-					.name(paramAnnotation.name());
+					.name(param.getName());
 
 			args.add(option);
 		}
