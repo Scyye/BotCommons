@@ -3,6 +3,7 @@ package dev.scyye.botcommons.utilities;
 import com.google.gson.Gson;
 import dev.scyye.botcommons.config.Config;
 import dev.scyye.botcommons.config.GuildConfig;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -84,6 +85,7 @@ public class SQLiteUtils {
 		return null;
 	}
 
+	@NotNull
 	public static HashMap<String, Object> executeQuery(String sql, String... args) {
 		try (Connection connection = connect()) {
 			PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -100,7 +102,7 @@ public class SQLiteUtils {
 			return results;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return null;
+			return new HashMap<>();
 		}
 	}
 

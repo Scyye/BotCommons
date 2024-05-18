@@ -6,20 +6,13 @@
 
     <groupId>dev.scyye</groupId>
     <artifactId>BotCommons</artifactId>
-    <version>1.5.13</version>
+    <version>1.6.09</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
     <build>
         <plugins>
             <plugin>
@@ -28,8 +21,9 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
-                    <compilerArgs>--enable-preview</compilerArgs>
+                    <parameters>true</parameters>
                 </configuration>
+                <version>3.11.0</version>
             </plugin>
         </plugins>
     </build>

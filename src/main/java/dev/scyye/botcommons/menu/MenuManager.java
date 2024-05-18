@@ -70,7 +70,7 @@ public class MenuManager extends ListenerAdapter {
 				menuRegistry.replace(menuId, menu);
 			else
 				registerMenu(menu);
-		} catch (Exception _) {}
+		} catch (Exception ignored) {}
 		if (menu == null)
 			menu = menuRegistry.get(menuId);
 		if (menu == null)

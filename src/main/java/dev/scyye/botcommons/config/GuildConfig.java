@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class GuildConfig extends HashMap<String, Object> {
 	/**
@@ -50,10 +51,10 @@ public class GuildConfig extends HashMap<String, Object> {
 	public static GuildConfig create(HashMap<String, Object> values, String guildId) {
 		//System.out.println(gson.toJson(def));
 		String sql =
-				STR."CREATE TABLE IF NOT EXISTS config(guild TEXT NOT NULL PRIMARY KEY, \{
+				"CREATE TABLE IF NOT EXISTS config(guild TEXT NOT NULL PRIMARY KEY, " +
 						String.join(", ", def.keySet().stream().filter(key ->
-										!key.equals("guild")).map(key -> STR."\{key} TEXT")
-								.toArray(String[]::new))});";
+										!key.equals("guild")).map(key -> key + " TEXT")
+								.toArray(String[]::new));
 		SQLiteUtils.execute(sql);
 		GuildConfig config = new GuildConfig();
 		for (Entry<String, Object> entry : def.entrySet()) {
@@ -64,7 +65,7 @@ public class GuildConfig extends HashMap<String, Object> {
 			config.put(entry.getKey(), values.getOrDefault(entry.getKey(), entry.getValue()));
 		}
 		try	{
-			if (SQLiteUtils.executeQuery(STR."SELECT * FROM config WHERE guild = '\{guildId}'").isEmpty())
+			if (SQLiteUtils.executeQuery("SELECT * FROM config WHERE guild = ?", guildId).isEmpty())
 				SQLiteUtils.insertOrUpdateConfig(config);
 		} catch (SQLException e) {
 			System.out.println("error uwu");
@@ -90,8 +91,10 @@ public class GuildConfig extends HashMap<String, Object> {
 	}
 
 	public static GuildConfig fromGuildId(String guildId) {
+		if (Objects.equals(guildId, "-1"))
+			return def;
 
-		ResultSet set = SQLiteUtils.executeQuerySet(STR."SELECT * FROM config WHERE guild = '\{guildId}'");
+		ResultSet set = SQLiteUtils.executeQuerySet("SELECT * FROM config WHERE guild = ?", guildId);
 
 		var	json = SQLiteUtils.jsonify(set);
 		assert json != null;

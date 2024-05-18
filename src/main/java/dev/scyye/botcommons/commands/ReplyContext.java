@@ -93,6 +93,9 @@ public class ReplyContext {
 		if (receivedEvent != null) {
 			if (menuId != null) {
 				MenuManager.replyMenu(menuId, receivedEvent.getMessage(), menuArgs.toArray());
+				this.menuId = null;
+				this.embeds.clear();
+				this.content = null;
 				return true;
 			}
 
@@ -114,14 +117,25 @@ public class ReplyContext {
 					message.delete().delay(2, TimeUnit.SECONDS).queue();
 				consumer.accept(message);
 			});
+			this.menuId = null;
+			this.embeds.clear();
+			this.content = null;
 			return true;
 		} else if (interactionEvent != null) {
 			if (menuId != null) {
+				if (!defer && !interactionEvent.isAcknowledged())
+					interactionEvent.deferReply().queue();
 				MenuManager.replyMenu(menuId, interactionEvent.getHook(), menuArgs.toArray());
+				this.menuId = null;
+				this.embeds.clear();
+				this.content = null;
 				return true;
 			}
 			if (defer) {
 				interactionEvent.getHook().sendMessage(content).setEmbeds(getEmbeds()).setEphemeral(ephemeral).queue(consumer);
+				this.menuId = null;
+				this.embeds.clear();
+				this.content = null;
 				return true;
 			}
 
@@ -152,8 +166,14 @@ public class ReplyContext {
 				action2.setEphemeral(ephemeral).queue(object -> {
 					consumer.accept((Message) object);
 				});
+			this.menuId = null;
+			this.embeds.clear();
+			this.content = null;
 			return true;
 		}
+		this.menuId = null;
+		this.embeds.clear();
+		this.content = null;
 		return false;
 	}
 

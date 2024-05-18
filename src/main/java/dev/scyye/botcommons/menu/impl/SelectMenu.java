@@ -39,7 +39,7 @@ public abstract class SelectMenu extends BaseMenu {
 		int i = 1;
 
 		for (Option option : getOptions()) {
-			builder.addField(STR."\{option.getName()} \{numberEmojis.get(i)}", option.getDescription(), true);
+			builder.addField(option.getName() + " " +numberEmojis.get(i), option.getDescription(), true);
 			i++;
 		}
 
@@ -53,7 +53,7 @@ public abstract class SelectMenu extends BaseMenu {
 		int i = 0;
 
 		for (Option option : getOptions()) {
-			buttons[i] = Button.secondary(STR."select_\{i}", STR."\{numberEmojis.get(i + 1)} \{option.getName()}");
+			buttons[i] = Button.secondary("select_" +i, numberEmojis.get(i + 1) + " " + option.getName());
 			i++;
 		}
 
