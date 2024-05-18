@@ -122,7 +122,7 @@ public class MethodCommandManager extends ListenerAdapter {
 			event.replyError("Command not found");
 			return;
 		}
-		if (info.permission != null && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
+		if (!Objects.equals(info.permission, "MESSAGE_SEND") && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
 			event.replyError("You do not have permission to use this command");
 			return;
 		}
