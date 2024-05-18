@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public abstract class SelectMenu extends BaseMenu {
 	static Map<Integer, String> numberEmojis = new HashMap<>(){{
 		put(1, "1️⃣");

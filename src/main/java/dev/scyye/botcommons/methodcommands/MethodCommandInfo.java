@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 
 import static dev.scyye.botcommons.methodcommands.MethodCommandManager.getCommand;
 
+@SuppressWarnings("unused")
 public class MethodCommandInfo {
 	/**
 	 * The command name. Should be unique, and lowercase

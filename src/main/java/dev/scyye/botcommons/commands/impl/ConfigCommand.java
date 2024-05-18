@@ -8,9 +8,12 @@ import dev.scyye.botcommons.methodcommands.MethodCommand;
 import dev.scyye.botcommons.methodcommands.MethodCommandHolder;
 import dev.scyye.botcommons.methodcommands.Param;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @MethodCommandHolder
@@ -32,7 +35,12 @@ public class ConfigCommand {
 		}
 
 		if (event.getConfig().set(key, value)) {
-			if (!event.getGuild().getMember(event.getUser()).hasPermission(Permission.MANAGE_SERVER)) {
+			Member member = event.getGuild().getMember(event.getUser());
+			if (member == null) {
+				event.replyError("Failed to get member.");
+				return;
+			}
+			if (!member.hasPermission(Permission.MANAGE_SERVER)) {
 				event.replyError("You do not have permission to set values.");
 				return;
 			}

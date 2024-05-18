@@ -22,6 +22,10 @@ public class SQLCommand {
 
 				// Convert the ResultSet into human readable data
 				StringBuilder result = new StringBuilder();
+				if (resultSet == null) {
+					event.replyError("No results found");
+					return;
+				}
 				while (resultSet.next()) {
 					for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
 						result.append(resultSet.getMetaData().getColumnName(i)).append(": ").append(resultSet.getString(i)).append("\n");

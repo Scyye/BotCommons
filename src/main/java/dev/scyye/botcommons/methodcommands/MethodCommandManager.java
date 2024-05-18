@@ -21,7 +21,7 @@ import java.util.*;
 
 public class MethodCommandManager extends ListenerAdapter {
 	private static final HashMap<MethodCommandInfo, Method> commands = new HashMap<>();
-	private static HashMap<String, List<Map.Entry<MethodCommandInfo, Method>>> subcommands = new HashMap<>();
+	private static final HashMap<String, List<Map.Entry<MethodCommandInfo, Method>>> subcommands = new HashMap<>();
 
 	public static void addCommands(Object... holders) {
 		for (var holder : holders) {
@@ -75,9 +75,9 @@ public class MethodCommandManager extends ListenerAdapter {
 			MethodCommandInfo info = entry.getKey();
 			SlashCommandData d = Commands.slash(info.name, info.help);
 			if (info.args != null) {
-				Arrays.stream(info.args).forEachOrdered(option -> {
-					d.addOption(option.getType(), option.getName(), option.getDescription(), option.isRequired(), option.isAutocomplete());
-				});
+				Arrays.stream(info.args).forEachOrdered(option ->
+						d.addOption(option.getType(), option.getName(), option.getDescription(),
+								option.isRequired(), option.isAutocomplete()));
 			}
 			data.add(d);
 		}
@@ -89,9 +89,9 @@ public class MethodCommandManager extends ListenerAdapter {
 				MethodCommandInfo info = sub.getKey();
 				SubcommandData subData = new SubcommandData(info.name, info.help);
 				if (info.args != null) {
-					Arrays.stream(info.args).forEachOrdered(option -> {
-						subData.addOption(option.getType(), option.getName(), option.getDescription(), option.isRequired(), option.isAutocomplete());
-					});
+					Arrays.stream(info.args).forEachOrdered(option ->
+							subData.addOption(option.getType(), option.getName(), option.getDescription(),
+									option.isRequired(), option.isAutocomplete()));
 				}
 				commandData.add(subData);
 			}
@@ -107,9 +107,8 @@ public class MethodCommandManager extends ListenerAdapter {
 				confirmedData.add(dad);
 		}
 
-		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 -> {
-			System.out.println(commands1 + " commands registered");
-		});
+		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 ->
+				System.out.println(commands1 + " commands registered"));
 	}
 
 	@Override
@@ -136,9 +135,8 @@ public class MethodCommandManager extends ListenerAdapter {
 			}
 			case DM -> {
 				if (event.isGuild()) {
-					event.getUser().openPrivateChannel().queue(privateChannel -> {
-						event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention());
-					});
+					event.getUser().openPrivateChannel().queue(privateChannel ->
+							event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention()));
 					return;
 				}
 			}

@@ -18,13 +18,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ReplyContext {
 	@Getter
 	private String content;
 	@Getter
 	private boolean ephemeral = false;
 	@Getter
-	private boolean defer = false;
+	private final boolean defer = false;
 	@Getter
 	private final GenericCommandEvent.Type type;
 	@Nullable
@@ -163,9 +164,7 @@ public class ReplyContext {
 					hook.retrieveOriginal().queue(consumer);
 				});
 			else if (action2!=null)
-				action2.setEphemeral(ephemeral).queue(object -> {
-					consumer.accept((Message) object);
-				});
+				action2.setEphemeral(ephemeral).queue(consumer);
 			this.menuId = null;
 			this.embeds.clear();
 			this.content = null;

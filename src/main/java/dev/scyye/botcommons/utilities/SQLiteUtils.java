@@ -1,6 +1,5 @@
 package dev.scyye.botcommons.utilities;
 
-import com.google.gson.Gson;
 import dev.scyye.botcommons.config.Config;
 import dev.scyye.botcommons.config.GuildConfig;
 import org.jetbrains.annotations.NotNull;
@@ -11,13 +10,12 @@ import org.json.JSONObject;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+// Suppressing all warnings is a bad practice, but considering this is a SQLite utility class, it's fine
+@SuppressWarnings("all")
 public class SQLiteUtils {
 	static Connection connection = null;
 

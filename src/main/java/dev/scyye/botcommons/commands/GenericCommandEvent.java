@@ -3,7 +3,6 @@ package dev.scyye.botcommons.commands;
 import com.google.gson.Gson;
 import dev.scyye.botcommons.cache.CacheManager;
 import dev.scyye.botcommons.config.GuildConfig;
-import dev.scyye.botcommons.menu.MenuManager;
 import dev.scyye.botcommons.methodcommands.MethodCommandInfo;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -23,13 +22,11 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 // Ignore possible null issues
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "unused"})
 public class GenericCommandEvent {
-	private boolean defer = false;
 
 	public enum Type {
 		SLASH_COMMAND,
@@ -202,7 +199,7 @@ public class GenericCommandEvent {
 					result = null;
 					break;
 				}
-				result = attachments.get(0);
+				result = attachments.getFirst();
 			}
 			case ROLE -> {
 				if (channel instanceof GuildChannel) {
@@ -210,7 +207,7 @@ public class GenericCommandEvent {
 						result = ((GuildChannel) channel).getGuild().getRoleById(arg);
 					} catch (NumberFormatException ignored) {
 						var roleList = getGuild().getRolesByName(arg, true);
-						result = roleList.isEmpty() ? null : roleList.get(0);
+						result = roleList.isEmpty() ? null : roleList.getFirst();
 					}
 				}
 			}
@@ -223,7 +220,8 @@ public class GenericCommandEvent {
 							result = res;
 							break;
 						}
-						result = ((GuildChannel) channel).getGuild().getChannels().stream().filter(c -> c.getName().equalsIgnoreCase(arg)).toList().get(0);
+						result = ((GuildChannel) channel).getGuild().getChannels().stream().filter(c ->
+								c.getName().equalsIgnoreCase(arg)).toList().getFirst();
 					} catch (Exception e) {
 						result = null;
 					}
@@ -247,7 +245,7 @@ public class GenericCommandEvent {
 					break;
 
 
-				result = users.get(0).getUser();
+				result = users.getFirst().getUser();
 			}
 			case SUB_COMMAND -> result = "SUB_COMMAND";
 			case SUB_COMMAND_GROUP -> result = "SUB_COMMAND_GROUP";
@@ -284,7 +282,7 @@ public class GenericCommandEvent {
 
 		result = result.stream().map(arg -> arg.replace("''", "\"")).toList();
 
-		if (result.isEmpty() || result.get(0).isEmpty()) {
+		if (result.isEmpty() || result.getFirst().isEmpty()) {
 			result = result.subList(1, result.size());
 		}
 
@@ -353,7 +351,6 @@ public class GenericCommandEvent {
 	}
 
 	public void deferReply() {
-		defer=true;
 		if (isSlashCommand())
 			slashCommandEvent.deferReply().queue();
 	}
