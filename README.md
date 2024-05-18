@@ -4,20 +4,33 @@ A framework for creating bots for Discord using [JDA](https://github.com/DV8From
 
 # Features
 ## Commands Framework
-To create a command, simply create a class that implements `ICommand` and implement the `execute` method.
-Make sure it is annotated with `@Command(name = "command name", help = "command help")`.
-Then, register the command using `CommandManager#addCommands(ICommand...)`.
+To create a command, simply create a class that is annotated with `@MethodCommandHolder(string: Optional group)`;
+Then create a function that is annotated with `@MethodCommand()`. (View the `@MethodCommand` class for more information on the parameters.)
+Then, register the command using `MethodCommandManager.addCommands(CommandHolderClass.class)`.
+
+**Below is an example of a command, along with how to use parameters:**
 
 ```java
-import dev.scyye.botcommons.commands.Command;
-import dev.scyye.botcommons.commands.CommandManager;
 import dev.scyye.botcommons.commands.GenericCommandEvent;
+import dev.scyye.botcommons.methodcommands.MethodCommand;
+import dev.scyye.botcommons.methodcommands.MethodCommandHolder;
+import dev.scyye.botcommons.methodcommands.MethodCommandManager;
+import dev.scyye.botcommons.methodcommands.Param;
 
-@Command(name = "ping", help = "Replies with pong!", usage = "!ping")
-public class PingCommand implements ICommand {
-	@Override
-	public void execute(GenericCommandEvent event) {
-		event.reply("Pong!");
+// You can also specify a group for the commands in the holder
+@MethodCommandHolder
+public class PingCommand {
+	@MethodCommand(name = "ping", help = "Pong!")
+	public void execute(GenericCommandEvent event,
+						@Param(
+								description = "A user",
+								type = Param.ParamType.USER
+						)
+						// the name of the argument is grabbed from the parameter name        
+						User user) {
+		event.replySuccess("Pong! " + user.getAsMention()).finish(message -> {
+			// Success consumer
+        });
 	}
 }
 
@@ -25,20 +38,20 @@ public class Main {
 	// ...
 	public static void main(String[] args) {
 		JDA jda = JDABuilder.createDefault("token")
-				.addEventListeners(new CommandManager())
+				.addEventListeners(new MethodCommandManager())
 				.build();
 
-		CommandManager.addCommands(new PingCommand());
+		MethodCommandManager.addCommands(PingCommand.class);
 	}
 	// ...
 }
 ```
 
 ## Config Framework
-There are 2 types of configs: `Config` and `ServerConfig`.
+There are 2 types of configs: `Config` and `GuildConfig`.
 
 `Config` is a config that is shared across all servers.\
-`ServerConfig` is a config that is specific to a server.
+`GuildConfig` is a config that is specific to a server.
 
 ### Config
 To create a config, simply add this to your bot:
@@ -89,3 +102,6 @@ You can also reply to commands with a menu, by calling `CommandEvent#replyMenu(P
 
 
 ### ***__NOTE:__ YOU MUST call `JDA.addEventListener(PaginationListener)` to enable the menu framework.***
+
+## Cache Framework
+### TODO
