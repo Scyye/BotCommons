@@ -1,7 +1,5 @@
 package dev.scyye.botcommons.methodcommands;
 
-import dev.scyye.botcommons.commands.Command;
-
 // usable on methods
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

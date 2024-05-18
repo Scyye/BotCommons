@@ -18,13 +18,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ReplyContext {
 	@Getter
 	private String content;
 	@Getter
 	private boolean ephemeral = false;
 	@Getter
-	private boolean defer = false;
+	private final boolean defer = false;
 	@Getter
 	private final GenericCommandEvent.Type type;
 	@Nullable
@@ -85,14 +86,17 @@ public class ReplyContext {
 		return this;
 	}
 
-	public boolean reply() {
-		return reply(ignored -> {});
+	public boolean finish() {
+		return finish(ignored -> {});
 	}
 
-	public boolean reply(Consumer<Message> consumer) {
+	public boolean finish(Consumer<Message> consumer) {
 		if (receivedEvent != null) {
 			if (menuId != null) {
 				MenuManager.replyMenu(menuId, receivedEvent.getMessage(), menuArgs.toArray());
+				this.menuId = null;
+				this.embeds.clear();
+				this.content = null;
 				return true;
 			}
 
@@ -114,14 +118,25 @@ public class ReplyContext {
 					message.delete().delay(2, TimeUnit.SECONDS).queue();
 				consumer.accept(message);
 			});
+			this.menuId = null;
+			this.embeds.clear();
+			this.content = null;
 			return true;
 		} else if (interactionEvent != null) {
 			if (menuId != null) {
+				if (!defer && !interactionEvent.isAcknowledged())
+					interactionEvent.deferReply().queue();
 				MenuManager.replyMenu(menuId, interactionEvent.getHook(), menuArgs.toArray());
+				this.menuId = null;
+				this.embeds.clear();
+				this.content = null;
 				return true;
 			}
 			if (defer) {
 				interactionEvent.getHook().sendMessage(content).setEmbeds(getEmbeds()).setEphemeral(ephemeral).queue(consumer);
+				this.menuId = null;
+				this.embeds.clear();
+				this.content = null;
 				return true;
 			}
 
@@ -145,15 +160,19 @@ public class ReplyContext {
 			}
 
 			if (action!=null)
-				action.setEphemeral(ephemeral).queue(hook -> {
-					hook.retrieveOriginal().queue(consumer);
-				});
+				action.setEphemeral(ephemeral).queue(hook ->
+					hook.retrieveOriginal().queue(consumer)
+				);
 			else if (action2!=null)
-				action2.setEphemeral(ephemeral).queue(object -> {
-					consumer.accept((Message) object);
-				});
+				action2.setEphemeral(ephemeral).queue(consumer);
+			this.menuId = null;
+			this.embeds.clear();
+			this.content = null;
 			return true;
 		}
+		this.menuId = null;
+		this.embeds.clear();
+		this.content = null;
 		return false;
 	}
 

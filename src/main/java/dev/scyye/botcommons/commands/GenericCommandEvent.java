@@ -3,7 +3,6 @@ package dev.scyye.botcommons.commands;
 import com.google.gson.Gson;
 import dev.scyye.botcommons.cache.CacheManager;
 import dev.scyye.botcommons.config.GuildConfig;
-import dev.scyye.botcommons.menu.MenuManager;
 import dev.scyye.botcommons.methodcommands.MethodCommandInfo;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -23,13 +22,11 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 // Ignore possible null issues
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "unused"})
 public class GenericCommandEvent {
-	private boolean defer = false;
 
 	public enum Type {
 		SLASH_COMMAND,
@@ -82,7 +79,7 @@ public class GenericCommandEvent {
 	}
 
 	public String getGuildId() {
-		return getGuild().getId();
+		return isGuild()? getGuild().getId():"-1";
 	}
 
 	public User getUser() {
@@ -202,7 +199,7 @@ public class GenericCommandEvent {
 					result = null;
 					break;
 				}
-				result = attachments.get(0);
+				result = attachments.getFirst();
 			}
 			case ROLE -> {
 				if (channel instanceof GuildChannel) {
@@ -210,7 +207,7 @@ public class GenericCommandEvent {
 						result = ((GuildChannel) channel).getGuild().getRoleById(arg);
 					} catch (NumberFormatException ignored) {
 						var roleList = getGuild().getRolesByName(arg, true);
-						result = roleList.isEmpty() ? null : roleList.get(0);
+						result = roleList.isEmpty() ? null : roleList.getFirst();
 					}
 				}
 			}
@@ -223,7 +220,8 @@ public class GenericCommandEvent {
 							result = res;
 							break;
 						}
-						result = ((GuildChannel) channel).getGuild().getChannels().stream().filter(c -> c.getName().equalsIgnoreCase(arg)).toList().get(0);
+						result = ((GuildChannel) channel).getGuild().getChannels().stream().filter(c ->
+								c.getName().equalsIgnoreCase(arg)).toList().getFirst();
 					} catch (Exception e) {
 						result = null;
 					}
@@ -247,7 +245,7 @@ public class GenericCommandEvent {
 					break;
 
 
-				result = users.get(0).getUser();
+				result = users.getFirst().getUser();
 			}
 			case SUB_COMMAND -> result = "SUB_COMMAND";
 			case SUB_COMMAND_GROUP -> result = "SUB_COMMAND_GROUP";
@@ -284,7 +282,7 @@ public class GenericCommandEvent {
 
 		result = result.stream().map(arg -> arg.replace("''", "\"")).toList();
 
-		if (result.isEmpty() || result.get(0).isEmpty()) {
+		if (result.isEmpty() || result.getFirst().isEmpty()) {
 			result = result.subList(1, result.size());
 		}
 
@@ -338,108 +336,42 @@ public class GenericCommandEvent {
 		return GuildConfig.fromGuildId(getGuildId());
 	}
 
-	public void reply(String message) {
-		this.replyContext.content(message).reply();
-		/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessage(message).queue();
-				return;
-			}
-			slashCommandEvent.reply(message).queue();
-		} else {
-			messageReceivedEvent.getMessage().reply(message).queue();
-		}*/
+	public ReplyContext reply(String message) {
+		return this.replyContext.content(message);
 	}
 
 	public void deferReply() {
-		defer=true;
 		if (isSlashCommand())
 			slashCommandEvent.deferReply().queue();
 	}
 
-	public void reply(String message, Consumer<Message> success) {
-		this.replyContext.content(message).reply(success);
-		/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessage(message).queue(success);
-				return;
-			}
-			slashCommandEvent.reply(message).queue(hook -> hook.retrieveOriginal().queue(success));
-		} else {
-			messageReceivedEvent.getMessage().reply(message).queue(success);
-		}*/
+	public boolean reply(String message, Consumer<Message> success) {
+		return this.replyContext.content(message).finish(success);
 	}
 
-	public void replySuccess(String message) {
-		this.replyContext.embed(new EmbedBuilder().setColor(0x00ff00).setDescription(message)).reply();/*
-		EmbedBuilder embed = new EmbedBuilder()
-				.setColor(0x00ff00)
-				.setDescription(message);
-
-		replyEmbed(embed);*/
+	public ReplyContext replySuccess(String message) {
+		return this.replyContext.embed(new EmbedBuilder().setColor(0x00ff00).setDescription(message));
 	}
 
-	public void replyError(String message) {
-		this.replyContext.embed(new EmbedBuilder().setColor(0xff0000).setDescription(message)).reply();/*
-		EmbedBuilder embed = new EmbedBuilder()
-				.setColor(0xff0000)
-				.setDescription(message);
-
-		replyEmbed(embed);*/
+	public ReplyContext replyError(String message) {
+		return this.replyContext.embed(new EmbedBuilder().setColor(0xff0000).setDescription(message));
 	}
 
-	public void reply(MessageCreateData message) {
+	public ReplyContext reply(MessageCreateData message) {
 		this.replyContext.content(message.getContent());
 		message.getEmbeds().forEach(e -> this.replyContext.embed(new EmbedBuilder(e)));
-		this.replyContext.reply();/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessage(message).queue();
-				return;
-			}
-			slashCommandEvent.reply(message).queue();
-		} else {
-			messageReceivedEvent.getMessage().reply(message).queue();
-		}*/
+		return this.replyContext;
 	}
 
-	public void replyEphemeral(String message) {
-		this.replyContext.content(message).ephemeral().reply();/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessage(message).setEphemeral(true).queue();
-				return;
-			}
-			slashCommandEvent.reply(message).setEphemeral(true).queue();
-		} else {
-			reply(message, msg -> {
-				msg.delete().queueAfter(2, TimeUnit.SECONDS);
-				getMessage().delete().queue();
-			});
-		}*/
+	public ReplyContext replyEphemeral(String message) {
+		return this.replyContext.content(message).ephemeral();
 	}
 
-	public void replyEmbed(EmbedBuilder embed) {
-		this.replyContext.embed(embed).reply();/*
-		if (isSlashCommand()) {
-			if (defer) {
-				slashCommandEvent.getHook().sendMessageEmbeds(embed.build()).setEphemeral(true).queue();
-				return;
-			}
-			slashCommandEvent.replyEmbeds(embed.build()).queue();
-		} else {
-			messageReceivedEvent.getMessage().replyEmbeds(embed.build()).queue();
-		}*/
+	public ReplyContext replyEmbed(EmbedBuilder embed) {
+		return this.replyContext.embed(embed);
 	}
 
-	public void replyMenu(String menuId, Object... args) {
-		this.replyContext.menu(menuId, args).reply();/*
-		if (isSlashCommand()) {
-			MenuManager.replyMenu(menuId, slashCommandEvent.getHook(), args);
-		} else {
-			MenuManager.replyMenu(menuId, messageReceivedEvent.getMessage(), args);
-		}*/
+	public ReplyContext replyMenu(String menuId, Object... args) {
+		return this.replyContext.menu(menuId, args);
 	}
 }

@@ -1,21 +1,21 @@
 package dev.scyye.botcommons.config;
 
-import dev.scyye.botcommons.commands.CommandManager;
 import dev.scyye.botcommons.commands.impl.ConfigCommand;
 import dev.scyye.botcommons.commands.impl.SQLCommand;
-import net.dv8tion.jda.api.JDA;
+import dev.scyye.botcommons.methodcommands.MethodCommandManager;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
+@SuppressWarnings("unused")
 public class ConfigManager extends ListenerAdapter {
 	static boolean ready = false;
 	GuildConfig def;
 	public ConfigManager(HashMap<String, Object> config) {
 		this.def=GuildConfig.fromHashMap(config);
-		CommandManager.addCommands(new ConfigCommand(), new SQLCommand());
+		MethodCommandManager.addCommands(ConfigCommand.class, SQLCommand.class);
 		ready=true;
 	}
 

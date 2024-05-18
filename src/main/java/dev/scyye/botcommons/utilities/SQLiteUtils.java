@@ -1,8 +1,8 @@
 package dev.scyye.botcommons.utilities;
 
-import com.google.gson.Gson;
 import dev.scyye.botcommons.config.Config;
 import dev.scyye.botcommons.config.GuildConfig;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,23 +10,22 @@ import org.json.JSONObject;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+// Suppressing all warnings is a bad practice, but considering this is a SQLite utility class, it's fine
+@SuppressWarnings("all")
 public class SQLiteUtils {
 	static Connection connection = null;
 
 	// Method to establish a connection to the database
 	private static Connection connect() throws SQLException {
 		// Define the database URL as a constant
-		String DATABASE_URL = "jdbc:sqlite:" + "K:\\sqlite\\"+Config.botName+".sqlite";
+		String DATABASE_URL = "jdbc:sqlite:K:\\sqlite\\"+Config.botName+".sqlite";
 		try {
-			if (!Files.exists(Path.of(Config.botName+"-assets", "database.sqlite")))
-				Files.createFile(Path.of(Config.botName+"-assets", "database.sqlite"));
+			if (!Files.exists(Path.of("K:\\", "sqlite", Config.botName+".sqlite")))
+				Files.createFile(Path.of("K:\\", "sqlite", Config.botName+".sqlite"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -84,6 +83,7 @@ public class SQLiteUtils {
 		return null;
 	}
 
+	@NotNull
 	public static HashMap<String, Object> executeQuery(String sql, String... args) {
 		try (Connection connection = connect()) {
 			PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -100,7 +100,7 @@ public class SQLiteUtils {
 			return results;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return null;
+			return new HashMap<>();
 		}
 	}
 

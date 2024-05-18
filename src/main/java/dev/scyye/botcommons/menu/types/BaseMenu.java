@@ -1,4 +1,4 @@
-package dev.scyye.botcommons.menu.impl;
+package dev.scyye.botcommons.menu.types;
 
 import dev.scyye.botcommons.menu.IMenu;
 import net.dv8tion.jda.api.entities.MessageEmbed;

@@ -12,3 +12,6 @@ target/
 
 # Test Files
 /src/test
+
+# Assets
+/*-assets/

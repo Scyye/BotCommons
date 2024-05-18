@@ -1,23 +1,20 @@
 package dev.scyye.botcommons.methodcommands;
 
 import com.google.gson.Gson;
-import dev.scyye.botcommons.commands.Command;
-import dev.scyye.botcommons.methodcommands.MethodCommandInfo;
 import dev.scyye.botcommons.commands.GenericCommandEvent;
-import dev.scyye.botcommons.commands.ICommand;
 import lombok.Getter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static dev.scyye.botcommons.methodcommands.MethodCommandManager.getCommand;
 
+@SuppressWarnings("unused")
 public class MethodCommandInfo {
 	/**
 	 * The command name. Should be unique, and lowercase
@@ -36,7 +33,10 @@ public class MethodCommandInfo {
 		return Arrays.stream(args).filter(option -> option.name.equals(name)).findFirst().orElse(null);
 	}
 
-	public static MethodCommandInfo from(Method command) {
+	public static MethodCommandInfo from(@Nullable Method command) {
+		if (command == null)
+			return null;
+
 		MethodCommand annotation = command.getAnnotation(MethodCommand.class);
 		if (annotation == null) {
 			throw new IllegalArgumentException("Command must have @Command annotation");
@@ -65,7 +65,7 @@ public class MethodCommandInfo {
 					.type(paramAnnotation.type())
 					.required(paramAnnotation.required())
 					.autocomplete(paramAnnotation.autocomplete())
-					.name(paramAnnotation.name());
+					.name(param.getName());
 
 			args.add(option);
 		}

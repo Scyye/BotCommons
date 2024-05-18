@@ -1,4 +1,4 @@
-package dev.scyye.botcommons.menu.impl;
+package dev.scyye.botcommons.menu.types;
 
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public abstract class SelectMenu extends BaseMenu {
 	static Map<Integer, String> numberEmojis = new HashMap<>(){{
 		put(1, "1️⃣");
@@ -39,7 +40,7 @@ public abstract class SelectMenu extends BaseMenu {
 		int i = 1;
 
 		for (Option option : getOptions()) {
-			builder.addField(STR."\{option.getName()} \{numberEmojis.get(i)}", option.getDescription(), true);
+			builder.addField(option.getName() + " " +numberEmojis.get(i), option.getDescription(), true);
 			i++;
 		}
 
@@ -53,7 +54,7 @@ public abstract class SelectMenu extends BaseMenu {
 		int i = 0;
 
 		for (Option option : getOptions()) {
-			buttons[i] = Button.secondary(STR."select_\{i}", STR."\{numberEmojis.get(i + 1)} \{option.getName()}");
+			buttons[i] = Button.secondary("select_" +i, numberEmojis.get(i + 1) + " " + option.getName());
 			i++;
 		}
 

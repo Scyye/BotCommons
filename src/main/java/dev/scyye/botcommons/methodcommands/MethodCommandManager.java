@@ -1,14 +1,10 @@
 package dev.scyye.botcommons.methodcommands;
 
-import dev.scyye.botcommons.commands.CommandInfo;
 import dev.scyye.botcommons.commands.GenericCommandEvent;
-import dev.scyye.botcommons.config.GuildConfig;
-import kotlin.TuplesKt;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.Channel;
-import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -25,16 +21,16 @@ import java.util.*;
 
 public class MethodCommandManager extends ListenerAdapter {
 	private static final HashMap<MethodCommandInfo, Method> commands = new HashMap<>();
-	private static HashMap<String, List<Map.Entry<MethodCommandInfo, Method>>> subcommands = new HashMap<>();
+	private static final HashMap<String, List<Map.Entry<MethodCommandInfo, Method>>> subcommands = new HashMap<>();
 
-	public static void addCommands(Object... holders) {
+	public static void addCommands(Class<?>... holders) {
 		for (var holder : holders) {
-			MethodCommandHolder meta = holder.getClass().getAnnotation(MethodCommandHolder.class);
+			MethodCommandHolder meta = holder.getAnnotation(MethodCommandHolder.class);
 			if (meta == null) {
-				throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getClass().getName());
+				throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getName());
 			}
 			if (meta.group().equalsIgnoreCase("n/a")) {
-				for (var cmd : holder.getClass().getMethods()) {
+				for (var cmd : holder.getMethods()) {
 					if (cmd.isAnnotationPresent(MethodCommand.class)) {
 						MethodCommandInfo info = MethodCommandInfo.from(cmd);
 						MethodCommandManager.commands.put(info, cmd);
@@ -45,7 +41,7 @@ public class MethodCommandManager extends ListenerAdapter {
 				continue;
 			}
 
-			for (var cmd : holder.getClass().getMethods()) {
+			for (var cmd : holder.getMethods()) {
 				if (cmd.isAnnotationPresent(MethodCommand.class)) {
 					MethodCommandInfo info = MethodCommandInfo.from(cmd);
 					MethodCommandManager.commands.put(info, cmd);
@@ -54,16 +50,16 @@ public class MethodCommandManager extends ListenerAdapter {
 		}
 	}
 
-	public static void addSubcommands(Object holder) {
-		MethodCommandHolder meta = holder.getClass().getAnnotation(MethodCommandHolder.class);
+	public static void addSubcommands(Class<?> holder) {
+		MethodCommandHolder meta = holder.getAnnotation(MethodCommandHolder.class);
 		if (meta == null) {
-			throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getClass().getName());
+			throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getName());
 		}
 		if (meta.group().equalsIgnoreCase("n/a")) {
 			throw new IllegalArgumentException("MethodCommandHolder annotation group is not set to a valid value");
 		}
 		String parent = meta.group();
-		for (var cmd : holder.getClass().getMethods()) {
+		for (var cmd : holder.getMethods()) {
 			if (cmd.isAnnotationPresent(MethodCommand.class)) {
 				MethodCommandInfo info = MethodCommandInfo.from(cmd);
 				subcommands.putIfAbsent(parent, new ArrayList<>());
@@ -79,9 +75,9 @@ public class MethodCommandManager extends ListenerAdapter {
 			MethodCommandInfo info = entry.getKey();
 			SlashCommandData d = Commands.slash(info.name, info.help);
 			if (info.args != null) {
-				Arrays.stream(info.args).forEachOrdered(option -> {
-					d.addOption(option.getType(), option.getName(), option.getDescription(), option.isRequired(), option.isAutocomplete());
-				});
+				Arrays.stream(info.args).forEachOrdered(option ->
+						d.addOption(option.getType(), option.getName(), option.getDescription(),
+								option.isRequired(), option.isAutocomplete()));
 			}
 			data.add(d);
 		}
@@ -93,9 +89,9 @@ public class MethodCommandManager extends ListenerAdapter {
 				MethodCommandInfo info = sub.getKey();
 				SubcommandData subData = new SubcommandData(info.name, info.help);
 				if (info.args != null) {
-					Arrays.stream(info.args).forEachOrdered(option -> {
-						subData.addOption(option.getType(), option.getName(), option.getDescription(), option.isRequired(), option.isAutocomplete());
-					});
+					Arrays.stream(info.args).forEachOrdered(option ->
+							subData.addOption(option.getType(), option.getName(), option.getDescription(),
+									option.isRequired(), option.isAutocomplete()));
 				}
 				commandData.add(subData);
 			}
@@ -111,22 +107,22 @@ public class MethodCommandManager extends ListenerAdapter {
 				confirmedData.add(dad);
 		}
 
-		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 -> {
-			System.out.println(commands1 + " commands registered");
-		});
+		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 ->
+				System.out.println(commands1 + " commands registered"));
 	}
 
 	@Override
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent slash) {
 		GenericCommandEvent event = GenericCommandEvent.of(slash);
 		MethodCommandInfo info = MethodCommandInfo.from(event);
+
 		Method cmd = getCommand(slash.getFullCommandName());
 
 		if (cmd == null) {
 			event.replyError("Command not found");
 			return;
 		}
-		if (info.permission != null && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
+		if (!Objects.equals(info.permission, "MESSAGE_SEND") && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
 			event.replyError("You do not have permission to use this command");
 			return;
 		}
@@ -139,9 +135,8 @@ public class MethodCommandManager extends ListenerAdapter {
 			}
 			case DM -> {
 				if (event.isGuild()) {
-					event.getUser().openPrivateChannel().queue(privateChannel -> {
-						event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention());
-					});
+					event.getUser().openPrivateChannel().queue(privateChannel ->
+							event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention()));
 					return;
 				}
 			}
@@ -156,7 +151,8 @@ public class MethodCommandManager extends ListenerAdapter {
 		} catch (Exception e) {
 			e.printStackTrace();
 			event.replyError("An error occurred while executing this command");
-			event.replyError(e.getMessage().substring(0, Math.min(e.getMessage().length(), 2000)));
+			if (e.getMessage() != null)
+				event.replyError(e.getMessage().substring(0, Math.min(e.getMessage().length(), 2000)));
 		}
 	}
 
@@ -197,12 +193,12 @@ public class MethodCommandManager extends ListenerAdapter {
 			try {
 				List<Object> args = new ArrayList<>();
 				args.add(event);
+
 				for (var option : MethodCommandInfo.from(cmd).args) {
-					//System.out.println(isSubcommandArgument(MethodCommandInfo.from(cmd), event.getCommandName()));
-					if (isSubcommandArgument(event.getArg(option.getName(), String.class), event.getCommandName())) {
+					if (isSubcommandArgument(event.getArg(option.getName(), String.class),
+							event.getCommandName()))
 						continue;
-					}
-					//System.out.println(event.getArg(option.getName(), typeMap.get(option.getType())));
+
 					args.add(event.getArg(option.getName(), typeMap.get(option.getType())));
 				}
 				// the rest of the params should be null
@@ -219,8 +215,6 @@ public class MethodCommandManager extends ListenerAdapter {
 	}
 
 	private static boolean isSubcommandArgument(String arg, String command) {
-		System.out.println("arg: " + arg);
-		System.out.println("command: " + command);
 		return subcommands.containsKey(command) && subcommands.get(command).stream().anyMatch(
 				entry -> entry.getKey().name.equalsIgnoreCase(arg) ||
 						Arrays.stream(entry.getKey().aliases).anyMatch(alias -> alias.equalsIgnoreCase(arg))
