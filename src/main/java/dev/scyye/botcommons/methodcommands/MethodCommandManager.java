@@ -1,14 +1,10 @@
 package dev.scyye.botcommons.methodcommands;
 
-import dev.scyye.botcommons.commands.CommandInfo;
 import dev.scyye.botcommons.commands.GenericCommandEvent;
-import dev.scyye.botcommons.config.GuildConfig;
-import kotlin.TuplesKt;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.Channel;
-import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -120,6 +116,7 @@ public class MethodCommandManager extends ListenerAdapter {
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent slash) {
 		GenericCommandEvent event = GenericCommandEvent.of(slash);
 		MethodCommandInfo info = MethodCommandInfo.from(event);
+		//System.out.println(slash.getFullCommandName());
 		Method cmd = getCommand(slash.getFullCommandName());
 
 		if (cmd == null) {
@@ -156,7 +153,8 @@ public class MethodCommandManager extends ListenerAdapter {
 		} catch (Exception e) {
 			e.printStackTrace();
 			event.replyError("An error occurred while executing this command");
-			event.replyError(e.getMessage().substring(0, Math.min(e.getMessage().length(), 2000)));
+			if (e.getMessage() != null)
+				event.replyError(e.getMessage().substring(0, Math.min(e.getMessage().length(), 2000)));
 		}
 	}
 
