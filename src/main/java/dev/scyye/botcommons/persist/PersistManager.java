@@ -15,12 +15,7 @@ public class PersistManager {
 	// All based off the keys, which should be unique and the primary key in the database
 
 	public PersistManager() {
-		if (SQLiteUtils.execute("CREATE TABLE IF NOT EXISTS persist (key TEXT PRIMARY KEY, value TEXT, field TEXT)")) {
-			System.out.println("Created persist table");
-		} else {
-			System.out.println("Failed to create persist table");
-		}
-
+		SQLiteUtils.execute("CREATE TABLE IF NOT EXISTS persist (key TEXT PRIMARY KEY, value TEXT, field TEXT)");
 	}
 
 	public void save(Object object) {
@@ -32,11 +27,8 @@ public class PersistManager {
 				String key = persist.value();
 				try {
 					field.setAccessible(true);
-					if(SQLiteUtils.execute("INSERT OR REPLACE INTO persist (key, value, field) VALUES (?, ?, ?)", key, field.get(object).toString(), field.getName())){
-						System.out.println("Saved " + field.getName() + " with key " + key);
-					} else {
-						System.out.println("Failed to save " + field.getName() + " with key " + key);
-					}
+					SQLiteUtils.execute("INSERT OR REPLACE INTO persist (key, value, field) VALUES (?, ?, ?)",
+							key, field.get(object).toString(), field.getName());
 				} catch (IllegalAccessException e) {
 					e.printStackTrace();
 				}

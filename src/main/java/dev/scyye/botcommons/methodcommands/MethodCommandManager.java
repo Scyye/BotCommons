@@ -115,7 +115,7 @@ public class MethodCommandManager extends ListenerAdapter {
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent slash) {
 		GenericCommandEvent event = GenericCommandEvent.of(slash);
 		MethodCommandInfo info = MethodCommandInfo.from(event);
-		//System.out.println(slash.getFullCommandName());
+
 		Method cmd = getCommand(slash.getFullCommandName());
 
 		if (cmd == null) {
@@ -193,12 +193,12 @@ public class MethodCommandManager extends ListenerAdapter {
 			try {
 				List<Object> args = new ArrayList<>();
 				args.add(event);
+
 				for (var option : MethodCommandInfo.from(cmd).args) {
-					//System.out.println(isSubcommandArgument(MethodCommandInfo.from(cmd), event.getCommandName()));
-					if (isSubcommandArgument(event.getArg(option.getName(), String.class), event.getCommandName())) {
+					if (isSubcommandArgument(event.getArg(option.getName(), String.class),
+							event.getCommandName()))
 						continue;
-					}
-					//System.out.println(event.getArg(option.getName(), typeMap.get(option.getType())));
+
 					args.add(event.getArg(option.getName(), typeMap.get(option.getType())));
 				}
 				// the rest of the params should be null
@@ -215,8 +215,6 @@ public class MethodCommandManager extends ListenerAdapter {
 	}
 
 	private static boolean isSubcommandArgument(String arg, String command) {
-		System.out.println("arg: " + arg);
-		System.out.println("command: " + command);
 		return subcommands.containsKey(command) && subcommands.get(command).stream().anyMatch(
 				entry -> entry.getKey().name.equalsIgnoreCase(arg) ||
 						Arrays.stream(entry.getKey().aliases).anyMatch(alias -> alias.equalsIgnoreCase(arg))

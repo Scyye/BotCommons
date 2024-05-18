@@ -30,7 +30,6 @@ public class MenuManager extends ListenerAdapter {
 	public static void registerMenu(IMenu... menus) {
 		for (IMenu menu : menus) {
 			String menuId = menu.getClass().getAnnotation(Menu.class).id();
-			System.out.println("Registered " + menuId);
 
 			menuRegistry.put(menuId, menu);
 		}
@@ -111,16 +110,8 @@ public class MenuManager extends ListenerAdapter {
 	@Override
 	public void onButtonInteraction(ButtonInteractionEvent event) {
 		String messageId = event.getMessageId();
-		IMenu menu = menuRegistry.values().stream()
+		menuRegistry.values().stream()
 				.filter(m -> m.getMessageId() != null && m.getMessageId().equals(messageId))
-				.findFirst()
-				.orElse(null);
-
-		if (menu != null) {
-			menu.handle(event);
-			return;
-		}
-
-		System.out.println("Menu not found");
+				.findFirst().ifPresent(menu -> menu.handle(event));
 	}
 }
