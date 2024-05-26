@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
@@ -76,21 +77,24 @@ public class CommandManager extends ListenerAdapter {
 
 	@Override
 	public void onReady(@NotNull ReadyEvent event) {
-		List<SlashCommandData> data = new ArrayList<>();
+		List<SlashCommandData> commandData = new ArrayList<>();
 		for (var entry : commands.entrySet()) {
 			CommandInfo info = entry.getKey();
 			SlashCommandData d = Commands.slash(info.name, info.help);
-			if (info.args != null) {
+			if (info.args != null)
 				Arrays.stream(info.args).forEachOrdered(option ->
-						d.addOption(option.getType(), option.getName(), option.getDescription(),
-								option.isRequired(), option.isAutocomplete()));
-			}
-			data.add(d);
+					d.addOptions(new OptionData(
+							option.getType(), option.getName(), option.getDescription(),
+							option.isRequired(), option.isAutocomplete())
+									.addChoices(option.getChoices().stream().map(choice ->
+											new net.dv8tion.jda.api.interactions.commands.Command.Choice(choice, choice)).toList())));
+
+			commandData.add(d);
 		}
 
 		for (var entry : subcommands.entrySet()) {
 			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey());
-			List<SubcommandData> commandData = new ArrayList<>();
+			List<SubcommandData> subcommandData = new ArrayList<>();
 			for (var sub : entry.getValue()) {
 				CommandInfo info = sub.getKey();
 				SubcommandData subData = new SubcommandData(info.name, info.help);
@@ -99,15 +103,15 @@ public class CommandManager extends ListenerAdapter {
 							subData.addOption(option.getType(), option.getName(), option.getDescription(),
 									option.isRequired(), option.isAutocomplete()));
 				}
-				commandData.add(subData);
+				subcommandData.add(subData);
 			}
 
-			d.addSubcommands(commandData);
-			data.add(d);
+			d.addSubcommands(subcommandData);
+			commandData.add(d);
 		}
 
 		List<SlashCommandData> confirmedData = new ArrayList<>();
-		for (var dad : data) {
+		for (var dad : commandData) {
 			if (confirmedData.stream().noneMatch(data1 -> data1.getName().equals(dad.getName()) ||
 					dad.getName().startsWith(data1.getName())))
 				confirmedData.add(dad);

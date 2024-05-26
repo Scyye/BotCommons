@@ -64,7 +64,8 @@ public class CommandInfo {
 					.type(paramAnnotation.type())
 					.required(paramAnnotation.required())
 					.autocomplete(paramAnnotation.autocomplete())
-					.name(param.getName());
+					.name(param.getName())
+					.choices(paramAnnotation.choices());
 
 			args.add(option);
 		}
@@ -89,6 +90,7 @@ public class CommandInfo {
 		private boolean autocomplete;
 		private String defaultValue;
 		private Predicate<String> validateArg;
+		private List<String> choices;
 
 		public Option name(String name) {
 			this.name = name;
@@ -117,6 +119,11 @@ public class CommandInfo {
 
 		public Option defaultValue(String defaultValue) {
 			this.defaultValue = defaultValue;
+			return this;
+		}
+
+		public Option choices(String... choices) {
+			this.choices = Arrays.asList(choices);
 			return this;
 		}
 
