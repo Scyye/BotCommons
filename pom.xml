@@ -23,7 +23,7 @@
                     <target>21</target>
                     <parameters>true</parameters>
                 </configuration>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
             </plugin>
         </plugins>
     </build>
