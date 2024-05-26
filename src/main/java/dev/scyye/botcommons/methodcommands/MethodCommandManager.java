@@ -1,6 +1,7 @@
 package dev.scyye.botcommons.methodcommands;
 
 import dev.scyye.botcommons.commands.GenericCommandEvent;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -22,6 +23,12 @@ import java.util.*;
 public class MethodCommandManager extends ListenerAdapter {
 	private static final HashMap<MethodCommandInfo, Method> commands = new HashMap<>();
 	private static final HashMap<String, List<Map.Entry<MethodCommandInfo, Method>>> subcommands = new HashMap<>();
+
+	private MethodCommandManager() {}
+
+	public static void init(JDA jda) {
+		jda.addEventListener(new MethodCommandManager());
+	}
 
 	public static void addCommands(Class<?>... holders) {
 		for (var holder : holders) {
@@ -50,7 +57,7 @@ public class MethodCommandManager extends ListenerAdapter {
 		}
 	}
 
-	public static void addSubcommands(Class<?> holder) {
+	private static void addSubcommands(Class<?> holder) {
 		MethodCommandHolder meta = holder.getAnnotation(MethodCommandHolder.class);
 		if (meta == null) {
 			throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getName());
