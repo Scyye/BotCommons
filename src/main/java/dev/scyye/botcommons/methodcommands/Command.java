@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
-public @interface MethodCommand {
+public @interface Command {
 	String name();
 	String help();
 	String[] aliases() default {};

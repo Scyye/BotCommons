@@ -1,4 +1,4 @@
-package dev.scyye.botcommons.commands;
+package dev.scyye.botcommons.methodcommands;
 
 import dev.scyye.botcommons.menu.MenuManager;
 import lombok.Getter;

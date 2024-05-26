@@ -1,6 +1,5 @@
 package dev.scyye.botcommons.methodcommands;
 
-import dev.scyye.botcommons.commands.GenericCommandEvent;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
@@ -20,27 +19,27 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class MethodCommandManager extends ListenerAdapter {
-	private static final HashMap<MethodCommandInfo, Method> commands = new HashMap<>();
-	private static final HashMap<String, List<Map.Entry<MethodCommandInfo, Method>>> subcommands = new HashMap<>();
+public class CommandManager extends ListenerAdapter {
+	private static final HashMap<CommandInfo, Method> commands = new HashMap<>();
+	private static final HashMap<String, List<Map.Entry<CommandInfo, Method>>> subcommands = new HashMap<>();
 
-	private MethodCommandManager() {}
+	private CommandManager() {}
 
 	public static void init(JDA jda) {
-		jda.addEventListener(new MethodCommandManager());
+		jda.addEventListener(new CommandManager());
 	}
 
 	public static void addCommands(Class<?>... holders) {
 		for (var holder : holders) {
-			MethodCommandHolder meta = holder.getAnnotation(MethodCommandHolder.class);
+			CommandHolder meta = holder.getAnnotation(CommandHolder.class);
 			if (meta == null) {
 				throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getName());
 			}
 			if (meta.group().equalsIgnoreCase("n/a")) {
 				for (var cmd : holder.getMethods()) {
-					if (cmd.isAnnotationPresent(MethodCommand.class)) {
-						MethodCommandInfo info = MethodCommandInfo.from(cmd);
-						MethodCommandManager.commands.put(info, cmd);
+					if (cmd.isAnnotationPresent(Command.class)) {
+						CommandInfo info = CommandInfo.from(cmd);
+						CommandManager.commands.put(info, cmd);
 					}
 				}
 			} else {
@@ -49,16 +48,16 @@ public class MethodCommandManager extends ListenerAdapter {
 			}
 
 			for (var cmd : holder.getMethods()) {
-				if (cmd.isAnnotationPresent(MethodCommand.class)) {
-					MethodCommandInfo info = MethodCommandInfo.from(cmd);
-					MethodCommandManager.commands.put(info, cmd);
+				if (cmd.isAnnotationPresent(Command.class)) {
+					CommandInfo info = CommandInfo.from(cmd);
+					CommandManager.commands.put(info, cmd);
 				}
 			}
 		}
 	}
 
 	private static void addSubcommands(Class<?> holder) {
-		MethodCommandHolder meta = holder.getAnnotation(MethodCommandHolder.class);
+		CommandHolder meta = holder.getAnnotation(CommandHolder.class);
 		if (meta == null) {
 			throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getName());
 		}
@@ -67,8 +66,8 @@ public class MethodCommandManager extends ListenerAdapter {
 		}
 		String parent = meta.group();
 		for (var cmd : holder.getMethods()) {
-			if (cmd.isAnnotationPresent(MethodCommand.class)) {
-				MethodCommandInfo info = MethodCommandInfo.from(cmd);
+			if (cmd.isAnnotationPresent(Command.class)) {
+				CommandInfo info = CommandInfo.from(cmd);
 				subcommands.putIfAbsent(parent, new ArrayList<>());
 				subcommands.get(parent).add(new AbstractMap.SimpleEntry<>(info, cmd));
 			}
@@ -79,7 +78,7 @@ public class MethodCommandManager extends ListenerAdapter {
 	public void onReady(@NotNull ReadyEvent event) {
 		List<SlashCommandData> data = new ArrayList<>();
 		for (var entry : commands.entrySet()) {
-			MethodCommandInfo info = entry.getKey();
+			CommandInfo info = entry.getKey();
 			SlashCommandData d = Commands.slash(info.name, info.help);
 			if (info.args != null) {
 				Arrays.stream(info.args).forEachOrdered(option ->
@@ -93,7 +92,7 @@ public class MethodCommandManager extends ListenerAdapter {
 			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey());
 			List<SubcommandData> commandData = new ArrayList<>();
 			for (var sub : entry.getValue()) {
-				MethodCommandInfo info = sub.getKey();
+				CommandInfo info = sub.getKey();
 				SubcommandData subData = new SubcommandData(info.name, info.help);
 				if (info.args != null) {
 					Arrays.stream(info.args).forEachOrdered(option ->
@@ -121,7 +120,7 @@ public class MethodCommandManager extends ListenerAdapter {
 	@Override
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent slash) {
 		GenericCommandEvent event = GenericCommandEvent.of(slash);
-		MethodCommandInfo info = MethodCommandInfo.from(event);
+		CommandInfo info = CommandInfo.from(event);
 
 		Method cmd = getCommand(slash.getFullCommandName());
 
@@ -165,9 +164,9 @@ public class MethodCommandManager extends ListenerAdapter {
 
 	@Override
 	public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
-		MethodCommandInfo info = MethodCommandInfo.from(getCommand(event.getFullCommandName()));
+		CommandInfo info = CommandInfo.from(getCommand(event.getFullCommandName()));
 		Class<?> clazz = info.method.getDeclaringClass();
-		MethodCommandHolder meta = clazz.getAnnotation(MethodCommandHolder.class);
+		CommandHolder meta = clazz.getAnnotation(CommandHolder.class);
 		Method autocomplete = Arrays.stream(clazz.getMethods()).filter(
 				method -> method.isAnnotationPresent(AutoCompleteHandler.class) && method.getParameters().length == 1
 				&& Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value()).toList().stream().map(s ->
@@ -201,7 +200,7 @@ public class MethodCommandManager extends ListenerAdapter {
 				List<Object> args = new ArrayList<>();
 				args.add(event);
 
-				for (var option : MethodCommandInfo.from(cmd).args) {
+				for (var option : CommandInfo.from(cmd).args) {
 					if (isSubcommandArgument(event.getArg(option.getName(), String.class),
 							event.getCommandName()))
 						continue;

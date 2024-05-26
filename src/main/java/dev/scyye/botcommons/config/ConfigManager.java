@@ -1,8 +1,8 @@
 package dev.scyye.botcommons.config;
 
-import dev.scyye.botcommons.commands.impl.ConfigCommand;
-import dev.scyye.botcommons.commands.impl.SQLCommand;
-import dev.scyye.botcommons.methodcommands.MethodCommandManager;
+import dev.scyye.botcommons.methodcommands.CommandManager;
+import dev.scyye.botcommons.methodcommands.impl.ConfigCommand;
+import dev.scyye.botcommons.methodcommands.impl.SQLCommand;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +16,7 @@ public class ConfigManager extends ListenerAdapter {
 	GuildConfig def;
 	public ConfigManager(HashMap<String, Object> config) {
 		this.def=GuildConfig.fromHashMap(config);
-		MethodCommandManager.addCommands(ConfigCommand.class, SQLCommand.class);
+		CommandManager.addCommands(ConfigCommand.class, SQLCommand.class);
 		ready=true;
 	}
 

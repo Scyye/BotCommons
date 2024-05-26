@@ -1,9 +1,8 @@
-package dev.scyye.botcommons.commands;
+package dev.scyye.botcommons.methodcommands;
 
 import com.google.gson.Gson;
 import dev.scyye.botcommons.cache.CacheManager;
 import dev.scyye.botcommons.config.GuildConfig;
-import dev.scyye.botcommons.methodcommands.MethodCommandInfo;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -140,7 +139,7 @@ public class GenericCommandEvent {
 		if (isSlashCommand()) {
 			return Arrays.stream(slashCommandEvent.getOptions().toArray(OptionMapping[]::new)).map(
 					optionMapping -> {
-						MethodCommandInfo.Option option = MethodCommandInfo.from(this).getOption(optionMapping.getName());
+						CommandInfo.Option option = CommandInfo.from(this).getOption(optionMapping.getName());
 						var data = switch (option.getType()) {
 							case UNKNOWN -> null;
 							case SUB_COMMAND -> null;
@@ -171,12 +170,12 @@ public class GenericCommandEvent {
 
 		List<Data> result = new ArrayList<>();
 
-		for (int i = 0; i < MethodCommandInfo.from(this).args.length; i++) {
+		for (int i = 0; i < CommandInfo.from(this).args.length; i++) {
 			if (i >= args.length)
 				break;
 
-			var arg = MethodCommandInfo.from(this).args[i];
-			if (i == MethodCommandInfo.from(this).args.length - 1 && arg.getType() == OptionType.STRING) {
+			var arg = CommandInfo.from(this).args[i];
+			if (i == CommandInfo.from(this).args.length - 1 && arg.getType() == OptionType.STRING) {
 				result.add(new Data(arg, String.join(" ", Arrays.copyOfRange(args, i, args.length))));
 				break;
 			}
@@ -187,7 +186,7 @@ public class GenericCommandEvent {
 		return result.toArray(Data[]::new);
 	}
 
-	public record Data(MethodCommandInfo.Option option, Object value) {
+	public record Data(CommandInfo.Option option, Object value) {
 	}
 
 	private <T> T parse(String arg, OptionType type, MessageChannel channel) {
@@ -296,8 +295,8 @@ public class GenericCommandEvent {
 
 
 	public <T> T getArg(String name, Class<T> type) {
-		MethodCommandInfo from = MethodCommandInfo.from(this);
-		MethodCommandInfo.Option option = from.getOption(name);
+		CommandInfo from = CommandInfo.from(this);
+		CommandInfo.Option option = from.getOption(name);
 
 		if (option == null) {
 			return null;

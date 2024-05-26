@@ -1,11 +1,11 @@
-package dev.scyye.botcommons.commands.impl;
+package dev.scyye.botcommons.methodcommands.impl;
 
 import com.google.gson.GsonBuilder;
-import dev.scyye.botcommons.commands.GenericCommandEvent;
+import dev.scyye.botcommons.methodcommands.GenericCommandEvent;
 import dev.scyye.botcommons.config.GuildConfig;
 import dev.scyye.botcommons.methodcommands.AutoCompleteHandler;
-import dev.scyye.botcommons.methodcommands.MethodCommand;
-import dev.scyye.botcommons.methodcommands.MethodCommandHolder;
+import dev.scyye.botcommons.methodcommands.Command;
+import dev.scyye.botcommons.methodcommands.CommandHolder;
 import dev.scyye.botcommons.methodcommands.Param;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -13,10 +13,10 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 
 import java.util.stream.Collectors;
 
-@MethodCommandHolder
+@CommandHolder
 public class ConfigCommand {
 
-	@MethodCommand(name = "config", help = "Get or set a config value")
+	@Command(name = "config", help = "Get or set a config value")
 	public static void config(GenericCommandEvent event,
 							  @Param(description = "The key to get or set", autocomplete = true) String key,
 							  @Param(description = "The value to set", autocomplete = true) String value) {

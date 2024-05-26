@@ -1,7 +1,6 @@
 package dev.scyye.botcommons.methodcommands;
 
 import com.google.gson.Gson;
-import dev.scyye.botcommons.commands.GenericCommandEvent;
 import lombok.Getter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.jetbrains.annotations.Nullable;
@@ -12,36 +11,36 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static dev.scyye.botcommons.methodcommands.MethodCommandManager.getCommand;
+import static dev.scyye.botcommons.methodcommands.CommandManager.getCommand;
 
 @SuppressWarnings("unused")
-public class MethodCommandInfo {
+public class CommandInfo {
 	/**
 	 * The command name. Should be unique, and lowercase
 	 */
 	public String name;
 	public String help;
 	public String[] aliases;
-	public MethodCommandInfo.Option[] args;
-	public MethodCommand.Scope scope;
+	public CommandInfo.Option[] args;
+	public Command.Scope scope;
 	public String category;
 	public String permission;
 	public String usage = "";
 	public Method method;
 
-	public MethodCommandInfo.Option getOption(String name) {
+	public CommandInfo.Option getOption(String name) {
 		return Arrays.stream(args).filter(option -> option.name.equals(name)).findFirst().orElse(null);
 	}
 
-	public static MethodCommandInfo from(@Nullable Method command) {
+	public static CommandInfo from(@Nullable Method command) {
 		if (command == null)
 			return null;
 
-		MethodCommand annotation = command.getAnnotation(MethodCommand.class);
+		Command annotation = command.getAnnotation(Command.class);
 		if (annotation == null) {
 			throw new IllegalArgumentException("Command must have @Command annotation");
 		}
-		MethodCommandInfo info = new MethodCommandInfo();
+		CommandInfo info = new CommandInfo();
 		info.name = annotation.name();
 		info.help = annotation.help();
 		info.aliases = annotation.aliases();
@@ -69,11 +68,11 @@ public class MethodCommandInfo {
 
 			args.add(option);
 		}
-		info.args = args.toArray(new MethodCommandInfo.Option[0]);
+		info.args = args.toArray(new CommandInfo.Option[0]);
 		return info;
 	}
 
-	public static MethodCommandInfo from(GenericCommandEvent event) {
+	public static CommandInfo from(GenericCommandEvent event) {
 		boolean sub = event.getSubcommandName() != null || event.getSubcommandGroup() != null;
 		String command = sub ? event.getCommandName() + (event.getSubcommandGroup()!=null? " " + event.getSubcommandGroup() + " ": " ") +
 				event.getSubcommandName() : event.getCommandName();
@@ -131,12 +130,12 @@ public class MethodCommandInfo {
 	@Override
 	public final boolean equals(Object o) {
 		return this == o ||
-				o instanceof MethodCommandInfo &&
-						name.equals(((MethodCommandInfo) o).name) &&
-						help.equals(((MethodCommandInfo) o).help) &&
-						usage.equals(((MethodCommandInfo) o).usage) &&
-						Arrays.equals(aliases, ((MethodCommandInfo) o).aliases) &&
-						Arrays.equals(args, ((MethodCommandInfo) o).args);
+				o instanceof CommandInfo &&
+						name.equals(((CommandInfo) o).name) &&
+						help.equals(((CommandInfo) o).help) &&
+						usage.equals(((CommandInfo) o).usage) &&
+						Arrays.equals(aliases, ((CommandInfo) o).aliases) &&
+						Arrays.equals(args, ((CommandInfo) o).args);
 	}
 
 	@Override

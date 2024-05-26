@@ -1,18 +1,18 @@
-package dev.scyye.botcommons.commands.impl;
+package dev.scyye.botcommons.methodcommands.impl;
 
-import dev.scyye.botcommons.commands.GenericCommandEvent;
-import dev.scyye.botcommons.methodcommands.MethodCommand;
-import dev.scyye.botcommons.methodcommands.MethodCommandHolder;
+import dev.scyye.botcommons.methodcommands.GenericCommandEvent;
+import dev.scyye.botcommons.methodcommands.Command;
+import dev.scyye.botcommons.methodcommands.CommandHolder;
 import dev.scyye.botcommons.methodcommands.Param;
 import dev.scyye.botcommons.utilities.SQLiteUtils;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 import java.sql.ResultSet;
 
-@MethodCommandHolder
+@CommandHolder
 public class SQLCommand {
 
-	@MethodCommand(name = "sql", help = "Run an SQL command")
+	@Command(name = "sql", help = "Run an SQL command")
 	public static void sql(GenericCommandEvent event,
 						   @Param(description = "The SQL command to run", type = OptionType.STRING) String sql) {
 		try {
