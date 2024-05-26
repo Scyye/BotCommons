@@ -3,6 +3,9 @@ package dev.scyye.botcommons.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.scyye.botcommons.utilities.SQLiteUtils;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,14 +15,34 @@ import java.util.Objects;
 public class GuildConfig extends HashMap<String, Object> {
 	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-
 	public static GuildConfig def;
 
-	public static void setDefault(GuildConfig config) {
-		def = config;
-		def.put("guild", "0");
+	private GuildConfig() {
+		super();
 	}
 
+	public static void setDefault(HashMap<String, Object> config) {
+		def = new GuildConfig();
+		def.putAll(config);
+		def.put("guild", "0");
+		def.put("prefix", "!");
+	}
+
+	public static void init(JDA jda) {
+		if (def == null)
+			setDefault(new GuildConfig());
+
+		jda.addEventListener(new GuildConfigListener());
+	}
+
+	/**
+	 * Creates a new GuildConfig object with the given values and guild id
+	 * @deprecated since 1.7-config, use {@link #setDefault(HashMap)} and {@link #init(JDA)} instead
+	 * @param values The values to put in the config
+	 * @param guildId The guild id
+	 * @return The {@link GuildConfig} object
+	 */
+	@Deprecated(since = "1.7-config", forRemoval = true)
 	public static GuildConfig create(HashMap<String, Object> values, String guildId) {
 		String sql =
 				"CREATE TABLE IF NOT EXISTS config(guild TEXT NOT NULL PRIMARY KEY, " +
@@ -101,5 +124,12 @@ public class GuildConfig extends HashMap<String, Object> {
 			return null;
 
 		return get(key.toString(), String.class);
+	}
+
+	private static class GuildConfigListener extends ListenerAdapter {
+		@Override
+		public void onGuildReady(GuildReadyEvent event) {
+			super.onGuildReady(event);
+		}
 	}
 }
