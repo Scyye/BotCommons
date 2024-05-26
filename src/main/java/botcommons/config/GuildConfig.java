@@ -129,7 +129,7 @@ public class GuildConfig extends HashMap<String, Object> {
 	private static class GuildConfigListener extends ListenerAdapter {
 		@Override
 		public void onGuildReady(GuildReadyEvent event) {
-			super.onGuildReady(event);
+			GuildConfig.create(GuildConfig.def, event.getGuild().getId());
 		}
 	}
 }
