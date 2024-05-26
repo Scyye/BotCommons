@@ -1,4 +1,4 @@
-package dev.scyye.botcommons.methodcommands;
+package dev.scyye.botcommons.commands;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

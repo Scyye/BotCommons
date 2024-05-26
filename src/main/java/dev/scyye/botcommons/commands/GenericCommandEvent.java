@@ -1,4 +1,4 @@
-package dev.scyye.botcommons.methodcommands;
+package dev.scyye.botcommons.commands;
 
 import com.google.gson.Gson;
 import dev.scyye.botcommons.cache.CacheManager;

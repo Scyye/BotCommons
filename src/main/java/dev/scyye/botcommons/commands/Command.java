@@ -1,4 +1,4 @@
-package dev.scyye.botcommons.methodcommands;
+package dev.scyye.botcommons.commands;
 
 // usable on methods
 import java.lang.annotation.ElementType;

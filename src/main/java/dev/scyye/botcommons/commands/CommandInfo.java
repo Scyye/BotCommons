@@ -1,4 +1,4 @@
-package dev.scyye.botcommons.methodcommands;
+package dev.scyye.botcommons.commands;
 
 import com.google.gson.Gson;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static dev.scyye.botcommons.methodcommands.CommandManager.getCommand;
+import static dev.scyye.botcommons.commands.CommandManager.getCommand;
 
 @SuppressWarnings("unused")
 public class CommandInfo {

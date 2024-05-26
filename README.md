@@ -11,8 +11,8 @@ Then, register the command using `MethodCommandManager.addCommands(CommandHolder
 **Below is an example of a command, along with how to use parameters:**
 
 ```java
-import dev.scyye.botcommons.methodcommands.*;
-import dev.scyye.botcommons.methodcommands.CommandManager;
+import dev.scyye.botcommons.commands.*;
+import dev.scyye.botcommons.commands.CommandManager;
 
 // You can also specify a group for the commands in the holder
 @CommandHolder

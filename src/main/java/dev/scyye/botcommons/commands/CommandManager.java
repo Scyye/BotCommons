@@ -1,4 +1,4 @@
-package dev.scyye.botcommons.methodcommands;
+package dev.scyye.botcommons.commands;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;

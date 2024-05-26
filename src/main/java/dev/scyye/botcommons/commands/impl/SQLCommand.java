@@ -1,9 +1,9 @@
-package dev.scyye.botcommons.methodcommands.impl;
+package dev.scyye.botcommons.commands.impl;
 
-import dev.scyye.botcommons.methodcommands.GenericCommandEvent;
-import dev.scyye.botcommons.methodcommands.Command;
-import dev.scyye.botcommons.methodcommands.CommandHolder;
-import dev.scyye.botcommons.methodcommands.Param;
+import dev.scyye.botcommons.commands.GenericCommandEvent;
+import dev.scyye.botcommons.commands.Command;
+import dev.scyye.botcommons.commands.CommandHolder;
+import dev.scyye.botcommons.commands.Param;
 import dev.scyye.botcommons.utilities.SQLiteUtils;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 

@@ -1,12 +1,12 @@
-package dev.scyye.botcommons.methodcommands.impl;
+package dev.scyye.botcommons.commands.impl;
 
 import com.google.gson.GsonBuilder;
-import dev.scyye.botcommons.methodcommands.GenericCommandEvent;
+import dev.scyye.botcommons.commands.GenericCommandEvent;
 import dev.scyye.botcommons.config.GuildConfig;
-import dev.scyye.botcommons.methodcommands.AutoCompleteHandler;
-import dev.scyye.botcommons.methodcommands.Command;
-import dev.scyye.botcommons.methodcommands.CommandHolder;
-import dev.scyye.botcommons.methodcommands.Param;
+import dev.scyye.botcommons.commands.AutoCompleteHandler;
+import dev.scyye.botcommons.commands.Command;
+import dev.scyye.botcommons.commands.CommandHolder;
+import dev.scyye.botcommons.commands.Param;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
