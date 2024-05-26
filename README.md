@@ -11,16 +11,12 @@ Then, register the command using `MethodCommandManager.addCommands(CommandHolder
 **Below is an example of a command, along with how to use parameters:**
 
 ```java
-import dev.scyye.botcommons.commands.GenericCommandEvent;
-import dev.scyye.botcommons.methodcommands.MethodCommand;
-import dev.scyye.botcommons.methodcommands.MethodCommandHolder;
-import dev.scyye.botcommons.methodcommands.MethodCommandManager;
-import dev.scyye.botcommons.methodcommands.Param;
+import botcommons.commands.*;
 
 // You can also specify a group for the commands in the holder
-@MethodCommandHolder
+@CommandHolder
 public class PingCommand {
-	@MethodCommand(name = "ping", help = "Pong!")
+	@Command(name = "ping", help = "Pong!")
 	public void execute(GenericCommandEvent event,
 						@Param(
 								description = "A user",
@@ -30,7 +26,7 @@ public class PingCommand {
 						User user) {
 		event.replySuccess("Pong! " + user.getAsMention()).finish(message -> {
 			// Success consumer
-        });
+		});
 	}
 }
 
@@ -38,10 +34,10 @@ public class Main {
 	// ...
 	public static void main(String[] args) {
 		JDA jda = JDABuilder.createDefault("token")
-				.addEventListeners(new MethodCommandManager())
+				.addEventListeners(new CommandManager())
 				.build();
 
-		MethodCommandManager.addCommands(PingCommand.class);
+		CommandManager.addCommands(PingCommand.class);
 	}
 	// ...
 }
