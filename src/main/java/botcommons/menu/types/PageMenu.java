@@ -15,7 +15,7 @@ public abstract class PageMenu extends BaseMenu {
 	@Override
 	public void handle(ButtonInteractionEvent event) {
 		if (getPages().size()==1 && !event.getComponentId().equalsIgnoreCase("end")) {
-			// clear the buttons if theres only one page
+			// clear the buttons if there's only one page
 			event.editMessageEmbeds(getPages().getFirst()).setActionRow(Button.of(
 					ButtonStyle.DANGER,
 					"end",

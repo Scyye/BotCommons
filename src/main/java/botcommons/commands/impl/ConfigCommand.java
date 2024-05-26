@@ -13,10 +13,11 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @CommandHolder
 public class ConfigCommand {
 
-	@Command(name = "config", help = "Get or set a config value")
+	@Command(name = "config", help = "Get or set a config value", scope = Command.Scope.GUILD)
 	public static void config(GenericCommandEvent event,
 							  @Param(description = "The key to get or set", autocomplete = true) String key,
 							  @Param(description = "The value to set", autocomplete = true) String value) {
@@ -49,11 +50,17 @@ public class ConfigCommand {
 
 	@AutoCompleteHandler("config")
 	public static void handleAutocomplete(CommandAutoCompleteInteractionEvent event) {
+		if (!event.isFromGuild())
+			return;
 		if (event.getFocusedOption().getName().equals("key")) {
 			event.replyChoiceStrings(GuildConfig.def.keySet().stream().filter(
 					key -> key.contains(event.getFocusedOption().getValue())
 			).limit(25).collect(Collectors.toList())).queue();
 		} else if (event.getFocusedOption().getName().equals("value")) {
+			if (event.getOption("key")==null) {
+				event.replyChoiceStrings("Please select a key first").queue();
+				return;
+			}
 			event.replyChoiceStrings(GuildConfig.fromGuildId(event.getGuild().getId()).get(
 					event.getOption("key").getAsString()
 			)).queue();

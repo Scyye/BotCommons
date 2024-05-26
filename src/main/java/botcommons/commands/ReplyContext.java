@@ -141,7 +141,7 @@ public class ReplyContext {
 			}
 
 			ReplyCallbackAction action = null;
-			WebhookMessageCreateAction action2 = null;
+			WebhookMessageCreateAction<Message> action2 = null;
 			if (content == null && embeds.isEmpty()) {
 				if (!interactionEvent.isAcknowledged())
 					action = interactionEvent.reply("No content provided");

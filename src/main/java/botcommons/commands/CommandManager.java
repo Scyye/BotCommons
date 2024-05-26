@@ -129,7 +129,7 @@ public class CommandManager extends ListenerAdapter {
 		Method cmd = getCommand(slash.getFullCommandName());
 
 		if (cmd == null) {
-			event.replyError("Command not found");
+			event.replyError("Command not found").finish();
 			return;
 		}
 		if (!Objects.equals(info.permission, "MESSAGE_SEND") && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
@@ -139,14 +139,14 @@ public class CommandManager extends ListenerAdapter {
 		switch (info.scope) {
 			case GUILD -> {
 				if (!event.isGuild()) {
-					event.replyError("This command can only be used in a guild");
+					event.replyError("This command can only be used in a guild").finish();
 					return;
 				}
 			}
 			case DM -> {
 				if (event.isGuild()) {
 					event.getUser().openPrivateChannel().queue(privateChannel ->
-							event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention()));
+							event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention()).finish());
 					return;
 				}
 			}
@@ -162,13 +162,17 @@ public class CommandManager extends ListenerAdapter {
 			e.printStackTrace();
 			event.replyError("An error occurred while executing this command");
 			if (e.getMessage() != null)
-				event.replyError(e.getMessage().substring(0, Math.min(e.getMessage().length(), 2000)));
+				event.replyError(e.getMessage().substring(0, Math.min(e.getMessage().length(), 2000))).finish();
 		}
 	}
 
 	@Override
 	public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
 		CommandInfo info = CommandInfo.from(getCommand(event.getFullCommandName()));
+		if (info == null) {
+			event.replyChoiceStrings("Command not found").queue();
+			return;
+		}
 		Class<?> clazz = info.method.getDeclaringClass();
 		CommandHolder meta = clazz.getAnnotation(CommandHolder.class);
 		Method autocomplete = Arrays.stream(clazz.getMethods()).filter(

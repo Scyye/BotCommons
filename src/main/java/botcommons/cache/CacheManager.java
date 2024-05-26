@@ -22,11 +22,11 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class CacheManager extends ListenerAdapter {
-	public static HashMap<Guild, List<Member>> guildMemberCache = new HashMap<>();
-	public static HashMap<User, List<Guild>> mutualGuildsCache = new HashMap<>();
-	public static HashMap<MessageChannel, List<MessageStructure>> channelMessageCache = new HashMap<>();
-	public static HashMap<Member, List<MessageStructure>> userMessageCache = new HashMap<>();
-	public static HashMap<String, User> userCache = new HashMap<>();
+	public static final HashMap<Guild, List<Member>> guildMemberCache = new HashMap<>();
+	public static final HashMap<User, List<Guild>> mutualGuildsCache = new HashMap<>();
+	public static final HashMap<MessageChannel, List<MessageStructure>> channelMessageCache = new HashMap<>();
+	public static final HashMap<Member, List<MessageStructure>> userMessageCache = new HashMap<>();
+	public static final HashMap<String, User> userCache = new HashMap<>();
 
 	static void init(JDA jda) {
 		jda.addEventListener(new CacheManager());

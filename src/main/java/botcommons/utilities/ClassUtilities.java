@@ -2,6 +2,7 @@ package botcommons.utilities;
 
 import java.lang.reflect.Field;
 
+@SuppressWarnings("unused")
 @Deprecated(since = "1.7", forRemoval = true)
 public class ClassUtilities {
 	public static <T> T getFieldOfType(Object object, Class<T> type) {

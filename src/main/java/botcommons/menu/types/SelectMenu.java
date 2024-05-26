@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public abstract class SelectMenu extends BaseMenu {
-	static Map<Integer, String> numberEmojis = new HashMap<>(){{
+	static final Map<Integer, String> numberEmojis = new HashMap<>(){{
 		put(1, "1️⃣");
 		put(2, "2️⃣");
 		put(3, "3️⃣");
@@ -65,9 +65,9 @@ public abstract class SelectMenu extends BaseMenu {
 
 	@Getter
 	protected static class Option {
-		String name;
-		String description;
-		Consumer<ButtonInteractionEvent> action;
+		final String name;
+		final String description;
+		final Consumer<ButtonInteractionEvent> action;
 
 		public Option(String name, Consumer<ButtonInteractionEvent> action) {
 			this.name = name;

@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class Config extends HashMap<String, Object> {
 	@Getter
 	private static Config instance;

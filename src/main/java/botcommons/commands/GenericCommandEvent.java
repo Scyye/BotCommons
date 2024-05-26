@@ -141,9 +141,7 @@ public class GenericCommandEvent {
 					optionMapping -> {
 						CommandInfo.Option option = CommandInfo.from(this).getOption(optionMapping.getName());
 						var data = switch (option.getType()) {
-							case UNKNOWN -> null;
-							case SUB_COMMAND -> null;
-							case SUB_COMMAND_GROUP -> null;
+							case UNKNOWN, SUB_COMMAND, SUB_COMMAND_GROUP -> null;
 							case STRING -> optionMapping.getAsString();
 							case INTEGER -> optionMapping.getAsLong();
 							case BOOLEAN -> optionMapping.getAsBoolean();
