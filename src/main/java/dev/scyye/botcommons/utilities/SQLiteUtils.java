@@ -21,11 +21,12 @@ public class SQLiteUtils {
 
 	// Method to establish a connection to the database
 	private static Connection connect() throws SQLException {
+		String path = Path.of("K:\\", "sqlite", Config.getInstance().get("bot-name")+".sqlite").toString();
 		// Define the database URL as a constant
-		String DATABASE_URL = "jdbc:sqlite:K:\\sqlite\\"+Config.botName+".sqlite";
+		String DATABASE_URL = "jdbc:sqlite:" + path;
 		try {
-			if (!Files.exists(Path.of("K:\\", "sqlite", Config.botName+".sqlite")))
-				Files.createFile(Path.of("K:\\", "sqlite", Config.botName+".sqlite"));
+			if (!Files.exists(Path.of(path)))
+				Files.createFile(Path.of(path));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
