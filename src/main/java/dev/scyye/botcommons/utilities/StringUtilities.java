@@ -18,7 +18,7 @@ public class StringUtilities {
 		map.forEach((key, value) -> stringMap.put(gson.toJson(key), gson.toJson(value)));
 		return stringMap;
 	}
-
+	@SuppressWarnings("unused")
 	public static HashMap<?, ?> parseMap(HashMap<String, String> strings, Class<?> keyClass, Class<?> valueClass) {
 		HashMap<Object, Object> map = new HashMap<>();
 		Gson gson = new Gson();
