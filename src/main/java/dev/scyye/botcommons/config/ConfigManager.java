@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
+@Deprecated(since = "1.7-config", forRemoval = true)
 @SuppressWarnings("unused")
 public class ConfigManager extends ListenerAdapter {
 	static boolean ready = false;
