@@ -162,6 +162,7 @@ public class SQLiteUtils {
 	}
 
 	public static void updateCache(HashMap<?, ?> map, String name) {
+		map = StringUtilities.stringifyMap(map);
 		try (Connection connection = connect()) {
 			for (Object key : map.keySet()) {
 				String sql = "INSERT OR REPLACE INTO " + name + " (key, value) VALUES (?, ?)";
