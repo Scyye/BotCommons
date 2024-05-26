@@ -13,6 +13,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -62,7 +63,4 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-
-
 </project>
