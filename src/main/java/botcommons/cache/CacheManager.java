@@ -28,7 +28,7 @@ public class CacheManager extends ListenerAdapter {
 	public static final HashMap<Member, List<MessageStructure>> userMessageCache = new HashMap<>();
 	public static final HashMap<String, User> userCache = new HashMap<>();
 
-	static void init(JDA jda) {
+	public static void init(JDA jda) {
 		jda.addEventListener(new CacheManager());
 		SQLiteUtils.createCache(guildMemberCache, "guild_member_cache");
 		SQLiteUtils.createCache(mutualGuildsCache, "mutual_guilds_cache");
@@ -38,7 +38,7 @@ public class CacheManager extends ListenerAdapter {
 		SQLiteUtils.createCache(userCache, "user_cache");
 	}
 
-	static void update() {
+	public static void update() {
 		SQLiteUtils.updateCache(guildMemberCache, "guild_member_cache");
 		SQLiteUtils.updateCache(mutualGuildsCache, "mutual_guilds_cache");
 		SQLiteUtils.updateCache(channelMessageCache, "channel_message_cache");

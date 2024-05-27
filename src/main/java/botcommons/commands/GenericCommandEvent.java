@@ -132,7 +132,7 @@ public class GenericCommandEvent {
 	}
 
 	boolean isSlashCommand() {
-		return type == Type.SLASH_COMMAND;
+		return true;
 	}
 
 	public Data[] getArgs() {

@@ -7,6 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
@@ -21,14 +23,15 @@ public class SQLiteUtils {
 
 	// Method to establish a connection to the database
 	private static Connection connect() throws SQLException {
-		String path = Path.of("K:\\", "sqlite", Config.getInstance().get("bot-name")+".sqlite").toString();
+		Path path = Path.of("K:\\", "sqlite", Config.getInstance().get("bot-name")+".sqlite");
 		// Define the database URL as a constant
 		String DATABASE_URL = "jdbc:sqlite:" + path;
 		try {
-			if (!Files.exists(Path.of(path)))
-				Files.createFile(Path.of(path));
-		} catch (Exception e) {
-			e.printStackTrace();
+			if (!Files.exists(path.getParent()))
+				Files.createDirectories(path.getParent());
+			if (!Files.exists(path));
+				Files.createFile(path);
+		} catch (IOException ignored) {
 		}
 
 		if (connection == null || connection.isClosed()) {

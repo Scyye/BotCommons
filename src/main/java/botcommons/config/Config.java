@@ -22,6 +22,7 @@ public class Config extends HashMap<String, Object> {
 		HashMap<String, String> values = new HashMap<>();
 		values.put("bot-name", botName);
 		values.put("token", "TOKEN");
+		values.put("owner-id", "OWNER_ID");
 		String fileName = botName + "-assets\\config.json";
 		if (Files.exists(Path.of(fileName))) {
 			try {
@@ -40,12 +41,12 @@ public class Config extends HashMap<String, Object> {
 				values.put(key, new GsonBuilder().setPrettyPrinting().create().toJson(value));
 		});
 		config.putAll(values);
+		instance = config;
 		try {
 			config.write();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		instance = config;
 		return instance;
 	}
 
@@ -55,6 +56,9 @@ public class Config extends HashMap<String, Object> {
 
 		if (config.get("token").equalsIgnoreCase("TOKEN"))
 			throw new IllegalArgumentException("Token not set in config file");
+
+		if (config.get("owner-id").equalsIgnoreCase("OWNER_ID"))
+			throw new IllegalArgumentException("Owner ID not set in config file");
 
 		return config;
 	}

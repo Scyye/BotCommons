@@ -1,5 +1,6 @@
 package botcommons.commands;
 
+import botcommons.config.Config;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
@@ -128,29 +129,8 @@ public class CommandManager extends ListenerAdapter {
 
 		Method cmd = getCommand(slash.getFullCommandName());
 
-		if (cmd == null) {
-			event.replyError("Command not found").finish();
-			return;
-		}
-		if (!Objects.equals(info.permission, "MESSAGE_SEND") && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
-			event.replyError("You do not have permission to use this command");
-			return;
-		}
-		switch (info.scope) {
-			case GUILD -> {
-				if (!event.isGuild()) {
-					event.replyError("This command can only be used in a guild").finish();
-					return;
-				}
-			}
-			case DM -> {
-				if (event.isGuild()) {
-					event.getUser().openPrivateChannel().queue(privateChannel ->
-							event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention()).finish());
-					return;
-				}
-			}
-		}
+		if (!checks(info, event, cmd)) return;
+
 		try {
 			List<Object> args = new ArrayList<>();
 			args.add(event);
@@ -201,9 +181,10 @@ public class CommandManager extends ListenerAdapter {
 		if (event.getMessage().getContentRaw().startsWith(event.getPrefix())) {
 			String command = event.getMessage().getContentRaw().substring(event.getPrefix().length());
 			Method cmd = getCommand(command);
-			if (cmd == null) {
+
+			if (!checks(CommandInfo.from(cmd), event, cmd))
 				return;
-			}
+
 			try {
 				List<Object> args = new ArrayList<>();
 				args.add(event);
@@ -226,6 +207,40 @@ public class CommandManager extends ListenerAdapter {
 				event.getChannel().sendMessage("An error occurred while executing this command").queue();
 			}
 		}
+	}
+
+	private static boolean checks(CommandInfo info, GenericCommandEvent event, Method cmd) {
+		if (cmd == null) {
+			event.replyError("Command not found").finish();
+			return false;
+		}
+		if (!Objects.equals(info.permission, "MESSAGE_SEND") && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
+			event.replyError("You do not have permission to use this command").finish();
+			return false;
+		}
+
+		if (Objects.equals(info.permission, "owner")) {
+			if (!Config.getInstance().get("owner-id").equals(event.getUser().getId())) {
+				event.replyError("You do not have permission to use this command").finish();
+				return false;
+			}
+		}
+		switch (info.scope) {
+			case GUILD -> {
+				if (!event.isGuild()) {
+					event.replyError("This command can only be used in a guild").finish();
+					return false;
+				}
+			}
+			case DM -> {
+				if (event.isGuild()) {
+					event.getUser().openPrivateChannel().queue(privateChannel ->
+							event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention()).finish());
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	private static boolean isSubcommandArgument(String arg, String command) {

@@ -49,7 +49,9 @@ public class GuildConfig extends HashMap<String, Object> {
 						String.join(", ", def.keySet().stream().filter(key ->
 										!key.equals("guild")).map(key -> key + " TEXT")
 								.toArray(String[]::new));
-		SQLiteUtils.execute(sql);
+		if (!SQLiteUtils.execute(sql)) {
+			throw new IllegalStateException("Failed to create table");
+		}
 		GuildConfig config = new GuildConfig();
 		for (Entry<String, Object> entry : def.entrySet()) {
 			if (entry.getKey().equals("guild")){
