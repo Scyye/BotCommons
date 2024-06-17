@@ -26,27 +26,15 @@ public class ReplyContext {
 	private boolean ephemeral = false;
 	@Getter
 	private final boolean defer = false;
-	@Getter
-	private final GenericCommandEvent.Type type;
 	@Nullable
 	private String menuId = null;
-	@Nullable
-	private final MessageReceivedEvent receivedEvent;
-	@Nullable
+	@NotNull
 	private final SlashCommandInteractionEvent interactionEvent;
 	private final List<EmbedBuilder> embeds = new ArrayList<>();
 	private final List<Object> menuArgs = new ArrayList<>();
 
-	public ReplyContext(@NotNull MessageReceivedEvent event) {
-		this.type = GenericCommandEvent.Type.MESSAGE_COMMAND;
-		this.receivedEvent = event;
-		this.interactionEvent = null;
-	}
-
 	public ReplyContext(@NotNull SlashCommandInteractionEvent event) {
-		this.type = GenericCommandEvent.Type.SLASH_COMMAND;
 		this.interactionEvent = event;
-		this.receivedEvent = null;
 	}
 
 	public List<MessageEmbed> getEmbeds() {
@@ -57,11 +45,7 @@ public class ReplyContext {
 		return menuId;
 	}
 
-	public @Nullable MessageReceivedEvent getReceivedEvent() {
-		return receivedEvent;
-	}
-
-	public @Nullable SlashCommandInteractionEvent getInteractionEvent() {
+	public @NotNull SlashCommandInteractionEvent getInteractionEvent() {
 		return interactionEvent;
 	}
 
@@ -91,89 +75,52 @@ public class ReplyContext {
 	}
 
 	public boolean finish(Consumer<Message> consumer) {
-		if (receivedEvent != null) {
-			if (menuId != null) {
-				MenuManager.replyMenu(menuId, receivedEvent.getMessage(), menuArgs.toArray());
-				this.menuId = null;
-				this.embeds.clear();
-				this.content = null;
-				return true;
-			}
-
-			MessageCreateAction action = null;
-			if (content == null && embeds.isEmpty()) {
-				action = receivedEvent.getChannel().sendMessage("No content provided");
-			} else if (content == null) {
-				action = receivedEvent.getChannel().sendMessageEmbeds(getEmbeds());
-			} else if (embeds.isEmpty()) {
-				action = receivedEvent.getChannel().sendMessage(content);
-			}
-
-			if (action == null) {
-				action = receivedEvent.getChannel().sendMessage("Error uwu");
-			}
-
-			action.queue(message -> {
-				if (ephemeral)
-					message.delete().delay(2, TimeUnit.SECONDS).queue();
-				consumer.accept(message);
-			});
-			this.menuId = null;
-			this.embeds.clear();
-			this.content = null;
-			return true;
-		} else if (interactionEvent != null) {
-			if (menuId != null) {
-				if (!defer && !interactionEvent.isAcknowledged())
-					interactionEvent.deferReply().queue();
-				MenuManager.replyMenu(menuId, interactionEvent.getHook(), menuArgs.toArray());
-				this.menuId = null;
-				this.embeds.clear();
-				this.content = null;
-				return true;
-			}
-			if (defer) {
-				interactionEvent.getHook().sendMessage(content).setEmbeds(getEmbeds()).setEphemeral(ephemeral).queue(consumer);
-				this.menuId = null;
-				this.embeds.clear();
-				this.content = null;
-				return true;
-			}
-
-			ReplyCallbackAction action = null;
-			WebhookMessageCreateAction<Message> action2 = null;
-			if (content == null && embeds.isEmpty()) {
-				if (!interactionEvent.isAcknowledged())
-					action = interactionEvent.reply("No content provided");
-				else
-					action2 = interactionEvent.getHook().sendMessage("No content provided");
-			} else if (content == null) {
-				if (!interactionEvent.isAcknowledged())
-					action = interactionEvent.replyEmbeds(getEmbeds());
-				else
-					action2 = interactionEvent.getHook().sendMessageEmbeds(getEmbeds());
-			} else if (embeds.isEmpty()) {
-				if (!interactionEvent.isAcknowledged())
-					action = interactionEvent.reply(content);
-				else
-					action2 = interactionEvent.getHook().sendMessage(content);
-			}
-
-			if (action!=null)
-				action.setEphemeral(ephemeral).queue(hook ->
-					hook.retrieveOriginal().queue(consumer)
-				);
-			else if (action2!=null)
-				action2.setEphemeral(ephemeral).queue(consumer);
+		if (menuId != null) {
+			if (!defer && !interactionEvent.isAcknowledged())
+				interactionEvent.deferReply().queue();
+			MenuManager.replyMenu(menuId, interactionEvent.getHook(), menuArgs.toArray());
 			this.menuId = null;
 			this.embeds.clear();
 			this.content = null;
 			return true;
 		}
+		if (defer) {
+			interactionEvent.getHook().sendMessage(content).setEmbeds(getEmbeds()).setEphemeral(ephemeral).queue(consumer);
+			this.menuId = null;
+			this.embeds.clear();
+			this.content = null;
+			return true;
+		}
+
+		ReplyCallbackAction action = null;
+		WebhookMessageCreateAction<Message> action2 = null;
+		if (content == null && embeds.isEmpty()) {
+			if (!interactionEvent.isAcknowledged())
+				action = interactionEvent.reply("No content provided");
+			else
+				action2 = interactionEvent.getHook().sendMessage("No content provided");
+		} else if (content == null) {
+			if (!interactionEvent.isAcknowledged())
+				action = interactionEvent.replyEmbeds(getEmbeds());
+			else
+				action2 = interactionEvent.getHook().sendMessageEmbeds(getEmbeds());
+		} else if (embeds.isEmpty()) {
+			if (!interactionEvent.isAcknowledged())
+				action = interactionEvent.reply(content);
+			else
+				action2 = interactionEvent.getHook().sendMessage(content);
+		}
+
+		if (action!=null)
+			action.setEphemeral(ephemeral).queue(hook ->
+					hook.retrieveOriginal().queue(consumer)
+			);
+		else if (action2!=null)
+			action2.setEphemeral(ephemeral).queue(consumer);
 		this.menuId = null;
 		this.embeds.clear();
 		this.content = null;
-		return false;
+		return true;
 	}
 
 
