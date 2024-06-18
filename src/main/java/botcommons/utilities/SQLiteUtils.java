@@ -40,6 +40,16 @@ public class SQLiteUtils {
 		return connection;
 	}
 
+	public static boolean execute(String sql) {
+		try (Connection connection = connect()) {
+			Statement statement = connection.createStatement();
+			return statement.execute(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 	public static boolean execute(String sql, String... args) {
 		try (Connection connection = connect()) {
 			PreparedStatement preparedStatement = connection.prepareStatement(sql);
