@@ -5,6 +5,7 @@ import botcommons.commands.Command;
 import botcommons.commands.CommandHolder;
 import botcommons.commands.Param;
 import botcommons.utilities.SQLiteUtils;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 import java.sql.ResultSet;
@@ -24,7 +25,6 @@ public class SQLCommand {
 				event.replySuccess("Command executed successfully");
 			return;
 		}
-
 		try (ResultSet resultSet = SQLiteUtils.executeQuerySet(sql)) {
 			// Convert the ResultSet into human-readable data
 			StringBuilder result = new StringBuilder();

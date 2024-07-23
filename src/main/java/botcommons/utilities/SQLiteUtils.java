@@ -43,7 +43,8 @@ public class SQLiteUtils {
 	public static boolean execute(String sql) {
 		try (Connection connection = connect()) {
 			Statement statement = connection.createStatement();
-			return statement.execute(sql);
+			statement.execute(sql);
+			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
