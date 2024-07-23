@@ -167,7 +167,8 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		try {
-			autocomplete.invoke(null, event);
+			// run the method, with it being static.
+			autocomplete.invoke(clazz.getConstructors()[0].newInstance(), event);
 		} catch (Exception e) {
 			e.printStackTrace();
 			event.replyChoiceStrings(e.getMessage().substring(0, Math.min(e.getMessage().length(), 15))).queue();
