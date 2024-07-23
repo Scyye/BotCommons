@@ -3,6 +3,7 @@ package botcommons.commands;
 import botcommons.config.Config;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.Channel;
@@ -215,6 +216,7 @@ public class CommandManager extends ListenerAdapter {
 		put(OptionType.BOOLEAN, Boolean.class);
 		put(OptionType.USER, User.class);
 		put(OptionType.CHANNEL, Channel.class);
+		put(OptionType.ATTACHMENT, Message.Attachment.class);
 		put(OptionType.ROLE, Role.class);
 		put(OptionType.MENTIONABLE, Object.class);
 		put(OptionType.NUMBER, Double.class);
