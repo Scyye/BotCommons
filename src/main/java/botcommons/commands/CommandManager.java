@@ -174,41 +174,6 @@ public class CommandManager extends ListenerAdapter {
 		}
 	}
 
-	@Override
-	public void onMessageReceived(@NotNull MessageReceivedEvent e) {
-		GenericCommandEvent event = GenericCommandEvent.of(e);
-		if (event.getUser().isBot()) return;
-		if (event.getMessage().getContentRaw().startsWith(event.getPrefix())) {
-			String command = event.getMessage().getContentRaw().substring(event.getPrefix().length());
-			Method cmd = getCommand(command);
-
-			if (!checks(CommandInfo.from(cmd), event, cmd))
-				return;
-
-			try {
-				List<Object> args = new ArrayList<>();
-				args.add(event);
-
-				for (var option : CommandInfo.from(cmd).args) {
-					if (isSubcommandArgument(event.getArg(option.getName(), String.class),
-							event.getCommandName()))
-						continue;
-
-					args.add(event.getArg(option.getName(), typeMap.get(option.getType())));
-				}
-				// the rest of the params should be null
-				for (int i = args.size(); i < cmd.getParameterCount(); i++) {
-					args.add(null);
-				}
-
-				cmd.invoke(null, args.toArray());
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				event.getChannel().sendMessage("An error occurred while executing this command").queue();
-			}
-		}
-	}
-
 	private static boolean checks(CommandInfo info, GenericCommandEvent event, Method cmd) {
 		if (cmd == null) {
 			event.replyError("Command not found").finish();
@@ -241,13 +206,6 @@ public class CommandManager extends ListenerAdapter {
 			}
 		}
 		return true;
-	}
-
-	private static boolean isSubcommandArgument(String arg, String command) {
-		return subcommands.containsKey(command) && subcommands.get(command).stream().anyMatch(
-				entry -> entry.getKey().name.equalsIgnoreCase(arg) ||
-						Arrays.stream(entry.getKey().aliases).anyMatch(alias -> alias.equalsIgnoreCase(arg))
-		);
 	}
 
 	private static final HashMap<OptionType, Class<?>> typeMap = new HashMap<>(){{

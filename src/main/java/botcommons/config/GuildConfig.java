@@ -48,7 +48,7 @@ public class GuildConfig extends HashMap<String, Object> {
 				"CREATE TABLE IF NOT EXISTS config(guild TEXT NOT NULL PRIMARY KEY, " +
 						String.join(", ", def.keySet().stream().filter(key ->
 										!key.equals("guild")).map(key -> key + " TEXT")
-								.toArray(String[]::new));
+								.toArray(String[]::new)) + ")";
 		if (!SQLiteUtils.execute(sql)) {
 			throw new IllegalStateException("Failed to create table");
 		}
