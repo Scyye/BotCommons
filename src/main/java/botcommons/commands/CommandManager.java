@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -177,7 +176,7 @@ public class CommandManager extends ListenerAdapter {
 	}
 
 	private static boolean checks(CommandInfo info, GenericCommandEvent event, Method cmd) {
-		if (cmd == null) {
+		if (cmd == null || event.getMember() == null) {
 			event.replyError("Command not found").finish();
 			return false;
 		}
