@@ -1,6 +1,7 @@
 package botcommons.commands;
 
 import botcommons.config.Config;
+import com.google.gson.Gson;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
@@ -119,7 +120,9 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 ->
-				System.out.println(commands1 + " commands registered"));
+				System.out.println(commands1 + " commands registered\n"+commands1.stream().map(
+						command -> command.getSubcommands().size()).toList()
+				));
 	}
 
 	@Override
@@ -155,20 +158,39 @@ public class CommandManager extends ListenerAdapter {
 		}
 		Class<?> clazz = info.method.getDeclaringClass();
 		CommandHolder meta = clazz.getAnnotation(CommandHolder.class);
-		Method autocomplete = Arrays.stream(clazz.getMethods()).filter(
-				method -> method.isAnnotationPresent(AutoCompleteHandler.class) && method.getParameters().length == 1
-				&& Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value()).toList().stream().map(s ->
-						meta.group().equalsIgnoreCase("n/a") ? s : meta.group() + " " + s
-				).toList().contains(event.getFullCommandName())
-		).findFirst().orElse(null);
-		if (autocomplete == null) {
+
+		Method autocompleteMethod = Arrays.stream(clazz.getDeclaredMethods())
+						.filter(method -> {
+							var annotated = method.isAnnotationPresent(AutoCompleteHandler.class);
+							if (!annotated) return false;
+							var paramLength = method.getParameters().length == 1;
+							var isProperCommand = Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value())
+									.toList().contains(event.getFullCommandName());
+
+							return paramLength && isProperCommand;
+						}).findFirst().orElse(null);
+		if (autocompleteMethod == null) {
+			System.out.println("autocomplete not found for: " + event.getFullCommandName());
+			System.out.println(clazz.getMethods().length);
+			System.out.println(
+					Arrays.stream(clazz.getMethods())
+							.filter(method -> {
+								return method.isAnnotationPresent(AutoCompleteHandler.class)
+										&& method.getParameters().length == 1
+										&& Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value()).toList().stream()
+										.map(s -> meta.group().equalsIgnoreCase("n/a") ? s : meta.group() + " " + s)
+										.toList().contains(event.getFullCommandName());
+							}).toList()
+			);
+			System.out.println(Arrays.stream(clazz.getMethods()).map(method ->
+					method.isAnnotationPresent(AutoCompleteHandler.class) + " " + method.getName()));
 			event.replyChoiceStrings("No autocomplete handler found for this command").queue();
 			return;
 		}
 
 		try {
 			// run the method, with it being static.
-			autocomplete.invoke(clazz.getConstructors()[0].newInstance(), event);
+			autocompleteMethod.invoke(clazz.getConstructors()[0].newInstance(), event);
 		} catch (Exception e) {
 			e.printStackTrace();
 			event.replyChoiceStrings(e.getMessage().substring(0, Math.min(e.getMessage().length(), 15))).queue();
@@ -180,17 +202,21 @@ public class CommandManager extends ListenerAdapter {
 			event.replyError("Command not found").finish();
 			return false;
 		}
-		if (!Objects.equals(info.permission, "MESSAGE_SEND") && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
-			event.replyError("You do not have permission to use this command").finish();
-			return false;
+		if (Config.getInstance().get("owner-id").equals(event.getUser().getId())) {
+			return true;
 		}
-
 		if (Objects.equals(info.permission, "owner")) {
 			if (!Config.getInstance().get("owner-id").equals(event.getUser().getId())) {
 				event.replyError("You do not have permission to use this command").finish();
 				return false;
 			}
+			return true;
+		} else
+		if (!event.getMember().hasPermission(Permission.valueOf(info.permission))) {
+			event.replyError("You do not have permission to use this command").finish();
+			return false;
 		}
+
 		switch (info.scope) {
 			case GUILD -> {
 				if (!event.isGuild()) {
@@ -225,6 +251,7 @@ public class CommandManager extends ListenerAdapter {
 	}};
 
 	public static Method getCommand(String command) {
+		System.out.println("Command: " + command);
 		Method possible = commands.entrySet().stream().filter(
 				entry -> entry.getKey().name.equalsIgnoreCase(command) || Arrays.stream(entry.getKey().aliases).anyMatch(alias -> alias.equalsIgnoreCase(command))
 		).map(Map.Entry::getValue).findFirst().orElse(null);
@@ -233,9 +260,12 @@ public class CommandManager extends ListenerAdapter {
 			return possible;
 		}
 
+		System.out.println("not a subcommand.");
+
 		for (var entry : subcommands.entrySet()) {
 			var name = entry.getKey();
 			var subcommands = entry.getValue();
+			if (!command.startsWith(name)) continue;
 			if (name.equalsIgnoreCase(command)) {
 				return subcommands.stream().filter(
 						subcommand -> subcommand.getKey().name.equalsIgnoreCase(command) || Arrays.stream(subcommand.getKey().aliases)

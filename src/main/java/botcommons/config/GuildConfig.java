@@ -111,7 +111,8 @@ public class GuildConfig extends HashMap<String, Object> {
 	}
 
 	public <T> T get(String key, Class<T> type) {
-		return type.cast(super.get(key));
+		return new Gson().fromJson(new Gson().toJson(super.get(key))
+				.replaceAll("\"", ""), type);
 	}
 
 	public String get(String key) {
