@@ -1,7 +1,6 @@
 package botcommons.commands;
 
 import botcommons.config.Config;
-import com.google.gson.Gson;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
@@ -21,12 +20,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
 
 public class CommandManager extends ListenerAdapter {
 	private static final HashMap<CommandInfo, Method> commands = new HashMap<>();
 	private static final HashMap<String, List<Map.Entry<CommandInfo, Method>>> subcommands = new HashMap<>();
 
 	private CommandManager() {}
+
+	private static Function<GenericCommandEvent, Boolean> prefixCheck;
+
+	public static void init(JDA jda, Function<GenericCommandEvent, Boolean> prefixCheck) {
+		init(jda);
+		CommandManager.prefixCheck = prefixCheck;
+	}
 
 	public static void init(JDA jda) {
 		jda.addEventListener(new CommandManager());
@@ -130,6 +137,13 @@ public class CommandManager extends ListenerAdapter {
 		GenericCommandEvent event = GenericCommandEvent.of(slash);
 		CommandInfo info = CommandInfo.from(event);
 
+		if (!prefixCheck(prefixCheck, event)) {
+			if (!event.getSlashCommandInteraction().isAcknowledged()) {
+				event.replyError("There was an issue.").ephemeral().finish();
+			}
+			return;
+		}
+
 		Method cmd = getCommand(slash.getFullCommandName());
 
 		if (!checks(info, event, cmd)) return;
@@ -174,13 +188,11 @@ public class CommandManager extends ListenerAdapter {
 			System.out.println(clazz.getMethods().length);
 			System.out.println(
 					Arrays.stream(clazz.getMethods())
-							.filter(method -> {
-								return method.isAnnotationPresent(AutoCompleteHandler.class)
-										&& method.getParameters().length == 1
-										&& Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value()).toList().stream()
-										.map(s -> meta.group().equalsIgnoreCase("n/a") ? s : meta.group() + " " + s)
-										.toList().contains(event.getFullCommandName());
-							}).toList()
+							.filter(method -> method.isAnnotationPresent(AutoCompleteHandler.class)
+									&& method.getParameters().length == 1
+									&& Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value()).toList().stream()
+									.map(s -> meta.group().equalsIgnoreCase("n/a") ? s : meta.group() + " " + s)
+									.toList().contains(event.getFullCommandName())).toList()
 			);
 			System.out.println(Arrays.stream(clazz.getMethods()).map(method ->
 					method.isAnnotationPresent(AutoCompleteHandler.class) + " " + method.getName()));
@@ -195,6 +207,9 @@ public class CommandManager extends ListenerAdapter {
 			e.printStackTrace();
 			event.replyChoiceStrings(e.getMessage().substring(0, Math.min(e.getMessage().length(), 15))).queue();
 		}
+	}
+	public static boolean prefixCheck(Function<GenericCommandEvent, Boolean> function, GenericCommandEvent event) {
+		return function.apply(event);
 	}
 
 	private static boolean checks(CommandInfo info, GenericCommandEvent event, Method cmd) {
