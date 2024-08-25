@@ -28,7 +28,7 @@ public class CommandManager extends ListenerAdapter {
 
 	private CommandManager() {}
 
-	private static Function<GenericCommandEvent, Boolean> prefixCheck;
+	private static Function<GenericCommandEvent, Boolean> prefixCheck = ($) -> true;
 
 	public static void init(JDA jda, Function<GenericCommandEvent, Boolean> prefixCheck) {
 		init(jda);
