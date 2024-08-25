@@ -28,11 +28,11 @@ public class CommandManager extends ListenerAdapter {
 
 	private CommandManager() {}
 
-	private static Function<GenericCommandEvent, Boolean> prefixCheck = ($) -> true;
+	private static Function<GenericCommandEvent, Boolean> commandRunCheck = ($) -> true;
 
-	public static void init(JDA jda, Function<GenericCommandEvent, Boolean> prefixCheck) {
+	public static void init(JDA jda, Function<GenericCommandEvent, Boolean> commandRunCheck) {
 		init(jda);
-		CommandManager.prefixCheck = prefixCheck;
+		CommandManager.commandRunCheck = commandRunCheck;
 	}
 
 	public static void init(JDA jda) {
@@ -137,7 +137,7 @@ public class CommandManager extends ListenerAdapter {
 		GenericCommandEvent event = GenericCommandEvent.of(slash);
 		CommandInfo info = CommandInfo.from(event);
 
-		if (!prefixCheck(prefixCheck, event)) {
+		if (!commandRunCheck.apply(event)) {
 			if (!event.getSlashCommandInteraction().isAcknowledged()) {
 				event.replyError("There was an issue.").ephemeral().finish();
 			}
@@ -207,9 +207,6 @@ public class CommandManager extends ListenerAdapter {
 			e.printStackTrace();
 			event.replyChoiceStrings(e.getMessage().substring(0, Math.min(e.getMessage().length(), 15))).queue();
 		}
-	}
-	public static boolean prefixCheck(Function<GenericCommandEvent, Boolean> function, GenericCommandEvent event) {
-		return function.apply(event);
 	}
 
 	private static boolean checks(CommandInfo info, GenericCommandEvent event, Method cmd) {
