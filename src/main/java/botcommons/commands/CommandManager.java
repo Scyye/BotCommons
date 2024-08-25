@@ -154,7 +154,10 @@ public class CommandManager extends ListenerAdapter {
 			for (var option : info.args) {
 				args.add(event.getArg(option.getName(), typeMap.get(option.getType())));
 			}
-			cmd.invoke(null, args.toArray());
+			if (cmd != null)
+				cmd.invoke(null, args.toArray());
+			else
+				event.replyError("Could not find the requested command.").finish();
 		} catch (Exception e) {
 			e.printStackTrace();
 			event.replyError("An error occurred while executing this command");
