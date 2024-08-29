@@ -1,7 +1,6 @@
 package botcommons.commands;
 
 import botcommons.config.Config;
-import com.google.gson.Gson;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
@@ -21,12 +20,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
 
 public class CommandManager extends ListenerAdapter {
 	private static final HashMap<CommandInfo, Method> commands = new HashMap<>();
 	private static final HashMap<String, List<Map.Entry<CommandInfo, Method>>> subcommands = new HashMap<>();
 
 	private CommandManager() {}
+
+	private static Function<GenericCommandEvent, Boolean> commandRunCheck = ($) -> true;
+
+	public static void init(JDA jda, Function<GenericCommandEvent, Boolean> commandRunCheck) {
+		init(jda);
+		CommandManager.commandRunCheck = commandRunCheck;
+	}
 
 	public static void init(JDA jda) {
 		jda.addEventListener(new CommandManager());
@@ -85,11 +92,11 @@ public class CommandManager extends ListenerAdapter {
 			SlashCommandData d = Commands.slash(info.name, info.help);
 			if (info.args != null)
 				Arrays.stream(info.args).forEachOrdered(option ->
-					d.addOptions(new OptionData(
-							option.getType(), option.getName(), option.getDescription(),
-							option.isRequired(), option.isAutocomplete())
-									.addChoices(option.getChoices().stream().map(choice ->
-											new net.dv8tion.jda.api.interactions.commands.Command.Choice(choice, choice)).toList())));
+						d.addOptions(new OptionData(
+								option.getType(), option.getName(), option.getDescription(),
+								option.isRequired(), option.isAutocomplete())
+								.addChoices(option.getChoices().stream().map(choice ->
+										new net.dv8tion.jda.api.interactions.commands.Command.Choice(choice, choice)).toList())));
 
 			commandData.add(d);
 		}
@@ -130,6 +137,13 @@ public class CommandManager extends ListenerAdapter {
 		GenericCommandEvent event = GenericCommandEvent.of(slash);
 		CommandInfo info = CommandInfo.from(event);
 
+		if (!commandRunCheck.apply(event)) {
+			if (!event.getSlashCommandInteraction().isAcknowledged()) {
+				event.replyError("There was an issue.").ephemeral().finish();
+			}
+			return;
+		}
+
 		Method cmd = getCommand(slash.getFullCommandName());
 
 		if (!checks(info, event, cmd)) return;
@@ -140,7 +154,10 @@ public class CommandManager extends ListenerAdapter {
 			for (var option : info.args) {
 				args.add(event.getArg(option.getName(), typeMap.get(option.getType())));
 			}
-			cmd.invoke(null, args.toArray());
+			if (cmd != null)
+				cmd.invoke(null, args.toArray());
+			else
+				event.replyError("Could not find the requested command.").finish();
 		} catch (Exception e) {
 			e.printStackTrace();
 			event.replyError("An error occurred while executing this command");
@@ -157,33 +174,10 @@ public class CommandManager extends ListenerAdapter {
 			return;
 		}
 		Class<?> clazz = info.method.getDeclaringClass();
-		CommandHolder meta = clazz.getAnnotation(CommandHolder.class);
 
-		Method autocompleteMethod = Arrays.stream(clazz.getDeclaredMethods())
-						.filter(method -> {
-							var annotated = method.isAnnotationPresent(AutoCompleteHandler.class);
-							if (!annotated) return false;
-							var paramLength = method.getParameters().length == 1;
-							var isProperCommand = Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value())
-									.toList().contains(event.getFullCommandName());
+		Method autocompleteMethod = findAutoCompleteMethod(clazz, event.getFullCommandName());
 
-							return paramLength && isProperCommand;
-						}).findFirst().orElse(null);
 		if (autocompleteMethod == null) {
-			System.out.println("autocomplete not found for: " + event.getFullCommandName());
-			System.out.println(clazz.getMethods().length);
-			System.out.println(
-					Arrays.stream(clazz.getMethods())
-							.filter(method -> {
-								return method.isAnnotationPresent(AutoCompleteHandler.class)
-										&& method.getParameters().length == 1
-										&& Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value()).toList().stream()
-										.map(s -> meta.group().equalsIgnoreCase("n/a") ? s : meta.group() + " " + s)
-										.toList().contains(event.getFullCommandName());
-							}).toList()
-			);
-			System.out.println(Arrays.stream(clazz.getMethods()).map(method ->
-					method.isAnnotationPresent(AutoCompleteHandler.class) + " " + method.getName()));
 			event.replyChoiceStrings("No autocomplete handler found for this command").queue();
 			return;
 		}
@@ -251,47 +245,68 @@ public class CommandManager extends ListenerAdapter {
 	}};
 
 	public static Method getCommand(String command) {
-		System.out.println("Command: " + command);
-		Method possible = commands.entrySet().stream().filter(
-				entry -> entry.getKey().name.equalsIgnoreCase(command) || Arrays.stream(entry.getKey().aliases).anyMatch(alias -> alias.equalsIgnoreCase(command))
-		).map(Map.Entry::getValue).findFirst().orElse(null);
+		// First, check if the command is a direct match or an alias
+		Method possibleCommand = commands.entrySet().stream()
+				.filter(entry -> entry.getKey().name.equalsIgnoreCase(command)
+						|| Arrays.stream(entry.getKey().aliases).anyMatch(alias -> alias.equalsIgnoreCase(command)))
+				.map(Map.Entry::getValue)
+				.findFirst()
+				.orElse(null);
 
-		if (possible != null) {
-			return possible;
+		// If a direct match is found, return it
+		if (possibleCommand != null) {
+			return possibleCommand;
 		}
 
-		System.out.println("not a subcommand.");
-
+		// If not a direct command, check subcommands
 		for (var entry : subcommands.entrySet()) {
-			var name = entry.getKey();
-			var subcommands = entry.getValue();
-			if (!command.startsWith(name)) continue;
-			if (name.equalsIgnoreCase(command)) {
-				return subcommands.stream().filter(
-						subcommand -> subcommand.getKey().name.equalsIgnoreCase(command) || Arrays.stream(subcommand.getKey().aliases)
-								.anyMatch(alias -> alias.equalsIgnoreCase(command))
-				).map(Map.Entry::getValue).findFirst().orElse(null);
+			String parentCommand = entry.getKey();
+			List<Map.Entry<CommandInfo, Method>> subcommandList = entry.getValue();
+
+			// Check if the command starts with the parent command
+			if (!command.startsWith(parentCommand)) continue;
+
+			// If the parent command matches exactly, check for matching subcommands
+			if (parentCommand.equalsIgnoreCase(command)) {
+				return subcommandList.stream()
+						.filter(subcommand -> subcommand.getKey().name.equalsIgnoreCase(command)
+								|| Arrays.stream(subcommand.getKey().aliases).anyMatch(alias -> alias.equalsIgnoreCase(command)))
+						.map(Map.Entry::getValue)
+						.findFirst()
+						.orElse(null);
 			}
-			String group = command.split(" ")[0];
-			if (name.equalsIgnoreCase(group)) {
-				Method p = subcommands.stream().filter(
-						subcommand -> subcommand.getKey().name.equalsIgnoreCase(command.split(" ")[1]) || Arrays.stream(subcommand.getKey().aliases)
-								.anyMatch(alias -> alias.equalsIgnoreCase(command.split(" ")[1]))
-				).map(Map.Entry::getValue).findFirst().orElse(null);
-				if (p != null) {
-					return p;
+
+			// Split the command to separate the parent command and the subcommand
+			String[] commandParts = command.split(" ");
+			if (commandParts.length < 2) continue;  // If no subcommand, skip
+
+			String group = commandParts[0];
+			String subcommand = commandParts[1];
+
+			// If the group (parent command) matches, check for matching subcommands
+			if (parentCommand.equalsIgnoreCase(group)) {
+				Method matchedSubcommand = subcommandList.stream()
+						.filter(sub -> sub.getKey().name.equalsIgnoreCase(subcommand)
+								|| Arrays.stream(sub.getKey().aliases).anyMatch(alias -> alias.equalsIgnoreCase(subcommand)))
+						.map(Map.Entry::getValue)
+						.findFirst()
+						.orElse(null);
+
+				if (matchedSubcommand != null) {
+					return matchedSubcommand;
 				}
 			}
-			String subcommand = command.split(" ")[1];
-			Method sub = entry.getValue().stream().filter(
-					s -> s.getKey().name.equalsIgnoreCase(subcommand) || Arrays.stream(s.getKey().aliases)
-							.anyMatch(alias -> alias.equalsIgnoreCase(s.getValue().getName()))
-			).map(Map.Entry::getValue).findFirst().orElse(null);
-
-			if (sub != null) {
-				return sub;
-			}
 		}
+
+		// If no command is found, return null
 		return null;
+	}
+
+	private static Method findAutoCompleteMethod(Class<?> clazz, String commandName) {
+		return Arrays.stream(clazz.getDeclaredMethods())
+				.filter(method -> method.isAnnotationPresent(AutoCompleteHandler.class)
+						&& method.getParameters().length == 1
+						&& Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value()).toList().contains(commandName))
+				.findFirst().orElse(null);
 	}
 }
