@@ -174,19 +174,9 @@ public class CommandManager extends ListenerAdapter {
 			return;
 		}
 		Class<?> clazz = info.method.getDeclaringClass();
-		CommandHolder holder = clazz.getAnnotation(CommandHolder.class);
 
+		Method autocompleteMethod = findAutoCompleteMethod(clazz, event.getFullCommandName());
 
-		Method autocompleteMethod = Arrays.stream(clazz.getDeclaredMethods())
-				.filter(method -> {
-					var annotated = method.isAnnotationPresent(AutoCompleteHandler.class);
-					if (!annotated) return false;
-					var paramLength = method.getParameters().length == 1;
-					var isProperCommand = Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value())
-							.toList().contains(event.getFullCommandName());
-
-					return paramLength && isProperCommand;
-				}).findFirst().orElse(null);
 		if (autocompleteMethod == null) {
 			event.replyChoiceStrings("No autocomplete handler found for this command").queue();
 			return;
@@ -310,5 +300,13 @@ public class CommandManager extends ListenerAdapter {
 
 		// If no command is found, return null
 		return null;
+	}
+
+	private static Method findAutoCompleteMethod(Class<?> clazz, String commandName) {
+		return Arrays.stream(clazz.getDeclaredMethods())
+				.filter(method -> method.isAnnotationPresent(AutoCompleteHandler.class)
+						&& method.getParameters().length == 1
+						&& Arrays.stream(method.getAnnotation(AutoCompleteHandler.class).value()).toList().contains(commandName))
+				.findFirst().orElse(null);
 	}
 }
