@@ -25,7 +25,6 @@ public class GuildConfig extends HashMap<String, Object> {
 		def = new GuildConfig();
 		def.putAll(config);
 		def.put("guild", "0");
-		def.put("prefix", "!");
 	}
 
 	public static void init(JDA jda) {

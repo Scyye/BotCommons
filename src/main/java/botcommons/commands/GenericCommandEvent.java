@@ -49,10 +49,6 @@ public class GenericCommandEvent {
 		return slashCommandEvent.getGuild();
 	}
 
-	public String getPrefix() {
-		return GuildConfig.fromGuildId(getGuildId()).get("prefix");
-	}
-
 	public String getGuildId() {
 		return isGuild()? getGuild().getId():"-1";
 	}
