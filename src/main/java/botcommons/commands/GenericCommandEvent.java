@@ -184,7 +184,7 @@ public class GenericCommandEvent {
 
 	public <T extends GenericEvent> ReplyContext replyListener(Class<T> eventType, Predicate<T> filter,
 													   Function<T, Void> listener) {
-		return replyContext.listenOnce(eventType, listener, filter);
+		return replyContext.listenOnce(eventType, filter, listener);
 	}
 
 	public ReplyContext replyEphemeral(String message) {
