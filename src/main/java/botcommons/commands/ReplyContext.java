@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ReplyContext {
-	private boolean finished = false;
+	private volatile boolean finished = false;
 	@Getter
 	private String content;
 	@Getter
@@ -87,7 +87,12 @@ public class ReplyContext {
 	}
 
 	private void markAsFinished() {
-		this.finished = true;this.menuId = null;this.embeds.clear();this.content = null;this.ephemeral = false;this.once = null;
+		this.finished = true;
+		this.menuId = null;
+		this.embeds.clear();
+		this.content = null;
+		this.ephemeral = false;
+		this.once = null;
 	}
 
 	public boolean finish(Consumer<Message> consumer) {
@@ -157,21 +162,32 @@ public class ReplyContext {
 		}
 
 		private ScheduledFuture<?> timeout() {
+			long delay = timeout.getSeconds();
+			if (delay <= 0) {
+				delay = 1;
+				System.out.println("Timeout duration must be positive, defaulting to 1 second");
+			}
 			return jda.getGatewayPool().schedule(() ->
 					jda.removeEventListener(this),
-					timeout.getSeconds(), TimeUnit.SECONDS);
+					delay, TimeUnit.SECONDS);
 		}
 
 		@Override
 		public void onGenericEvent(@NotNull GenericEvent event) {
+			T typedEvent;
 			try {
-				if (!filter.test((T) event))
+				typedEvent = (T) event;
+				if (!filter.test(typedEvent))
 					return;
 			} catch (ClassCastException e) {
 				return;
 			}
 			jda.removeEventListener(this);
-			listener.apply((T) (event));
+			try {
+				listener.apply(typedEvent);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
