@@ -6,12 +6,6 @@ import com.google.gson.GsonBuilder;
 import java.util.HashMap;
 
 public class StringUtilities {
-	@Deprecated(since = "1.7", forRemoval = true)
-	public static String replaceSpecificCharacter(String string, char replacement, int index) {
-		char[] chars = string.toCharArray();
-		chars[index] = replacement;
-		return new String(chars);
-	}
 	public static HashMap<String, String> stringifyMap(HashMap<?, ?> map) {
 		HashMap<String, String> stringMap = new HashMap<>();
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
