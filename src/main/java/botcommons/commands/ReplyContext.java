@@ -1,9 +1,7 @@
 package botcommons.commands;
 
 import botcommons.menu.MenuManager;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -11,24 +9,16 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
-import net.dv8tion.jda.api.utils.Once;
-import net.dv8tion.jda.api.utils.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -176,9 +166,9 @@ public class ReplyContext {
 		}
 
 		private ScheduledFuture<?> timeout() {
-			return jda.getGatewayPool().schedule(() -> {
-				jda.removeEventListener(this);
-			}, timeout.get(TimeUnit.SECONDS.toChronoUnit()), TimeUnit.SECONDS);
+			return jda.getGatewayPool().schedule(() ->
+					jda.removeEventListener(this),
+					timeout.get(TimeUnit.SECONDS.toChronoUnit()), TimeUnit.SECONDS);
 		}
 
 		@Override
