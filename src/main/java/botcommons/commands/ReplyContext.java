@@ -1,25 +1,43 @@
 package botcommons.commands;
 
 import botcommons.menu.MenuManager;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
+import net.dv8tion.jda.api.utils.Once;
+import net.dv8tion.jda.api.utils.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ReplyContext {
+	private boolean finished = false;
 	@Getter
 	private String content;
 	@Getter
@@ -32,6 +50,7 @@ public class ReplyContext {
 	private final SlashCommandInteractionEvent interactionEvent;
 	private final List<EmbedBuilder> embeds = new ArrayList<>();
 	private final List<Object> menuArgs = new ArrayList<>();
+	private OnceListener<? extends GenericEvent> once = null;
 
 	public ReplyContext(@NotNull SlashCommandInteractionEvent event) {
 		this.interactionEvent = event;
@@ -70,11 +89,21 @@ public class ReplyContext {
 		return this;
 	}
 
+	public <T extends GenericEvent> ReplyContext listenOnce (Class<T> eventType, Function<T, Void> listener, Predicate<T> filter) {
+		once = new OnceListener<>(eventType.getGenericSuperclass(), listener, interactionEvent.getJDA(), filter);
+		return this;
+	}
+
 	public boolean finish() {
 		return finish(ignored -> {});
 	}
 
 	public boolean finish(Consumer<Message> consumer) {
+		if (finished)
+			throw new IllegalStateException("ReplyContext already finished");
+		if (once != null) {
+			getInteractionEvent().getJDA().addEventListener(once);
+		}
 		if (menuId != null) {
 			if (!defer && !interactionEvent.isAcknowledged())
 				interactionEvent.deferReply().queue();
@@ -82,6 +111,7 @@ public class ReplyContext {
 			this.menuId = null;
 			this.embeds.clear();
 			this.content = null;
+			this.finished = true;
 			return true;
 		}
 		if (defer) {
@@ -89,6 +119,7 @@ public class ReplyContext {
 			this.menuId = null;
 			this.embeds.clear();
 			this.content = null;
+			this.finished = true;
 			return true;
 		}
 
@@ -120,8 +151,53 @@ public class ReplyContext {
 		this.menuId = null;
 		this.embeds.clear();
 		this.content = null;
+		this.finished = true;
 		return true;
 	}
 
+	private static class OnceListener<T extends GenericEvent> extends ListenerAdapter {
+		private final Function<T, Void> listener;
+		private final JDA jda;
+		private final Predicate<T> filter;
+		private Duration timeout = Duration.ofMinutes(5);
+		private boolean finished = false;
 
+		public OnceListener(Type eventType, Function<T, Void> listener, JDA jda, Predicate<T> filter) {
+			this.listener = listener;
+			this.jda = jda;
+			this.filter = filter;
+			jda.addEventListener(this);
+			timeout();
+		}
+
+		public OnceListener<T> setTimeout(Duration timeout) {
+			this.timeout = timeout;
+			return this;
+		}
+
+		private ScheduledFuture<?> timeout() {
+			return jda.getGatewayPool().schedule(() -> {
+				jda.removeEventListener(this);
+			}, timeout.get(TimeUnit.SECONDS.toChronoUnit()), TimeUnit.SECONDS);
+		}
+
+		@Override
+		public void onGenericEvent(@NotNull GenericEvent event) {
+			if (finished)
+				return;
+			try {
+				filter.test((T) event);
+			} catch (ClassCastException e) {
+				return;
+			}
+			if (!filter.test((T) (event)))
+				return;
+			finished = true;
+			jda.removeEventListener(this);
+			System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(event.getRawData()));
+			System.out.println(this);
+			System.out.println("Event received");
+			listener.apply((T) (event));
+		}
+	}
 }
