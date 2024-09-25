@@ -3,23 +3,29 @@ package botcommons.commands;
 import botcommons.menu.MenuManager;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ReplyContext {
+	private volatile boolean finished = false;
 	@Getter
 	private String content;
 	@Getter
@@ -32,6 +38,7 @@ public class ReplyContext {
 	private final SlashCommandInteractionEvent interactionEvent;
 	private final List<EmbedBuilder> embeds = new ArrayList<>();
 	private final List<Object> menuArgs = new ArrayList<>();
+	private OnceListener<? extends GenericEvent> once;
 
 	public ReplyContext(@NotNull SlashCommandInteractionEvent event) {
 		this.interactionEvent = event;
@@ -70,25 +77,40 @@ public class ReplyContext {
 		return this;
 	}
 
+	public <T extends GenericEvent> ReplyContext listenOnce(Class<T> eventType, Predicate<T> filter, Function<T, Void> listener) {
+		once = new OnceListener<>(eventType, interactionEvent.getJDA(), filter, listener);
+		return this;
+	}
+
 	public boolean finish() {
 		return finish(ignored -> {});
 	}
 
+	private void markAsFinished() {
+		this.finished = true;
+		this.menuId = null;
+		this.embeds.clear();
+		this.content = null;
+		this.ephemeral = false;
+		this.once = null;
+	}
+
 	public boolean finish(Consumer<Message> consumer) {
+		if (finished)
+			throw new IllegalStateException("ReplyContext already finished");
+		if (once != null) {
+			getInteractionEvent().getJDA().addEventListener(once);
+		}
 		if (menuId != null) {
 			if (!defer && !interactionEvent.isAcknowledged())
 				interactionEvent.deferReply().queue();
 			MenuManager.replyMenu(menuId, interactionEvent.getHook(), menuArgs.toArray());
-			this.menuId = null;
-			this.embeds.clear();
-			this.content = null;
+			markAsFinished();
 			return true;
 		}
 		if (defer) {
 			interactionEvent.getHook().sendMessage(content).setEmbeds(getEmbeds()).setEphemeral(ephemeral).queue(consumer);
-			this.menuId = null;
-			this.embeds.clear();
-			this.content = null;
+			markAsFinished();
 			return true;
 		}
 
@@ -117,11 +139,55 @@ public class ReplyContext {
 			);
 		else if (action2!=null)
 			action2.setEphemeral(ephemeral).queue(consumer);
-		this.menuId = null;
-		this.embeds.clear();
-		this.content = null;
+		markAsFinished();
 		return true;
 	}
 
+	private static class OnceListener<T extends GenericEvent> extends ListenerAdapter {
+		private final Function<T, Void> listener;
+		private final JDA jda;
+		private final Predicate<T> filter;
+		private Duration timeout = Duration.ofMinutes(5);
 
+		public OnceListener(Class<T> eventType, JDA jda, Predicate<T> filter, Function<T, Void> listener) {
+			this.listener = listener;
+			this.jda = jda;
+			this.filter = filter;
+			timeout();
+		}
+
+		public OnceListener<T> setTimeout(Duration timeout) {
+			this.timeout = timeout;
+			return this;
+		}
+
+		private ScheduledFuture<?> timeout() {
+			long delay = timeout.getSeconds();
+			if (delay <= 0) {
+				delay = 1;
+				System.out.println("Timeout duration must be positive, defaulting to 1 second");
+			}
+			return jda.getGatewayPool().schedule(() ->
+					jda.removeEventListener(this),
+					delay, TimeUnit.SECONDS);
+		}
+
+		@Override
+		public void onGenericEvent(@NotNull GenericEvent event) {
+			T typedEvent;
+			try {
+				typedEvent = (T) event;
+				if (!filter.test(typedEvent))
+					return;
+			} catch (ClassCastException e) {
+				return;
+			}
+			jda.removeEventListener(this);
+			try {
+				listener.apply(typedEvent);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

@@ -81,7 +81,7 @@ public class MenuManager extends ListenerAdapter {
 		return menu;
 	}
 
-
+	@Deprecated
 	public static void replyMenu(String menuId, Message message, Object... args) {
 		IMenu menu = getMenu(menuId, args);
 

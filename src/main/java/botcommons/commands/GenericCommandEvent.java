@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
@@ -18,6 +19,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 // Ignore possible null issues
 @SuppressWarnings({"ConstantConditions", "unused"})
@@ -177,6 +180,11 @@ public class GenericCommandEvent {
 		this.replyContext.content(message.getContent());
 		message.getEmbeds().forEach(e -> this.replyContext.embed(new EmbedBuilder(e)));
 		return this.replyContext;
+	}
+
+	public <T extends GenericEvent> ReplyContext replyListener(Class<T> eventType, Predicate<T> filter,
+													   Function<T, Void> listener) {
+		return replyContext.listenOnce(eventType, filter, listener);
 	}
 
 	public ReplyContext replyEphemeral(String message) {
