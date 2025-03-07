@@ -13,8 +13,8 @@ public class StringUtilities {
 		return stringMap;
 	}
 	@SuppressWarnings("unused")
-	public static HashMap<?, ?> parseMap(HashMap<String, String> strings, Class<?> keyClass, Class<?> valueClass) {
-		HashMap<Object, Object> map = new HashMap<>();
+	public static <T, V> HashMap<T, V> parseMap(HashMap<String, String> strings, Class<T> keyClass, Class<V> valueClass) {
+		HashMap<T, V> map = new HashMap<>();
 		Gson gson = new Gson();
 		strings.forEach((key, value) -> map.put(gson.fromJson(key, keyClass), gson.fromJson(value, valueClass)));
 		return map;

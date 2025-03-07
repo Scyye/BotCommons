@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -89,7 +90,7 @@ public class CommandManager extends ListenerAdapter {
 		List<SlashCommandData> commandData = new ArrayList<>();
 		for (var entry : commands.entrySet()) {
 			CommandInfo info = entry.getKey();
-			SlashCommandData d = Commands.slash(info.name, info.help);
+			SlashCommandData d = Commands.slash(info.name, info.help).setContexts(info.userContext);
 			if (info.args != null)
 				Arrays.stream(info.args).forEachOrdered(option ->
 						d.addOptions(new OptionData(
@@ -102,7 +103,8 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		for (var entry : subcommands.entrySet()) {
-			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey());
+			// TODO: Allow subcommands to have specific contexts: Do later.
+			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey()).setContexts(InteractionContextType.values());
 			List<SubcommandData> subcommandData = new ArrayList<>();
 			for (var sub : entry.getValue()) {
 				CommandInfo info = sub.getKey();

@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 
 @SuppressWarnings("unused")
 @CommandHolder
+@Deprecated(since = "1.11-config", forRemoval = true)
 public class SQLCommand {
 
 	@Command(name = "sql", help = "Run an SQL command")

@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
@@ -18,6 +17,7 @@ import java.util.stream.IntStream;
 
 // Suppressing all warnings is a bad practice, but considering this is a SQLite utility class, it's fine
 @SuppressWarnings("all")
+@Deprecated(since = "1.11-config", forRemoval = true)
 public class SQLiteUtils {
 	static Connection connection = null;
 
@@ -96,6 +96,25 @@ public class SQLiteUtils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static HashMap<String, Object> resultSetToMap(ResultSet resultSet) {
+		HashMap<String, Object> resultMap = new HashMap<>();
+		try {
+			ResultSetMetaData metaData = resultSet.getMetaData();
+			int columnCount = metaData.getColumnCount();
+
+			while (resultSet.next()) {
+				for (int i = 1; i <= columnCount; i++) {
+					String columnName = metaData.getColumnName(i);
+					Object value = resultSet.getObject(i);
+					resultMap.put(columnName, value);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultMap;
 	}
 
 	@NotNull

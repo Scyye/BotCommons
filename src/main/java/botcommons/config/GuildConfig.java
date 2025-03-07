@@ -12,6 +12,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Objects;
 
+/**
+ * Deprecated since 1.11-config,  instead
+ */
+@Deprecated(since = "1.11-config", forRemoval = true)
 public class GuildConfig extends HashMap<String, Object> {
 	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -91,11 +95,9 @@ public class GuildConfig extends HashMap<String, Object> {
 
 		ResultSet set = SQLiteUtils.executeQuerySet("SELECT * FROM config WHERE guild = ?", guildId);
 
-		var	json = SQLiteUtils.jsonify(set);
-		assert json != null;
-		json = json.substring(1, json.length()-1);
-
-		return gson.fromJson(json, GuildConfig.class);
+		assert set != null;
+		HashMap<String, Object> configMap = SQLiteUtils.resultSetToMap(set);
+		return fromHashMap(configMap);
 	}
 
 	public static GuildConfig fromHashMap(HashMap<String, Object> map) {
@@ -110,8 +112,11 @@ public class GuildConfig extends HashMap<String, Object> {
 	}
 
 	public <T> T get(String key, Class<T> type) {
-		return new Gson().fromJson(new Gson().toJson(super.get(key))
-				.replaceAll("\"", ""), type);
+		Object value = super.get(key);
+		if (type.isInstance(value)) {
+			return type.cast(value);
+		}
+		return null;
 	}
 
 	public String get(String key) {
