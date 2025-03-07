@@ -16,6 +16,7 @@ import java.util.Objects;
  * Deprecated since 1.11-config,  instead
  */
 @Deprecated(since = "1.11-config", forRemoval = true)
+@SuppressWarnings("all")
 public class GuildConfig extends HashMap<String, Object> {
 	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 

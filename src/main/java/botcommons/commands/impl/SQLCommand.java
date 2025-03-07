@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 import java.sql.ResultSet;
 
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 @CommandHolder
 @Deprecated(since = "1.11-config", forRemoval = true)
 public class SQLCommand {
