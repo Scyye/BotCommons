@@ -1,6 +1,6 @@
 package botcommons.commands;
 
-import botcommons.config.GuildConfig;
+import botcommons.config.ConfigManager;
 import com.google.gson.Gson;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -117,17 +117,6 @@ public class GenericCommandEvent {
 	public record Data(CommandInfo.Option option, Object value) {
 	}
 
-	/**
-	 * @deprecated Use {@link #getArg(String, Class)} instead
-	 *
-	 * @param index The index of the argument
-	 * @return The {@link Data} of the argument
-	 */
-	@Deprecated(since = "1.7-commands", forRemoval = true)
-	public Data getArg(int index) {
-		return getArgs()[index];
-	}
-
 
 	public <T> T getArg(String name, Class<T> type) {
 		CommandInfo from = CommandInfo.from(this);
@@ -152,8 +141,8 @@ public class GenericCommandEvent {
 		return null;
 	}
 
-	public GuildConfig getConfig() {
-		return GuildConfig.fromGuildId(getGuildId());
+	public ConfigManager.Config getConfig() {
+		return ConfigManager.getInstance().getConfigs().get(getGuildId());
 	}
 
 	public ReplyContext reply(String message) {

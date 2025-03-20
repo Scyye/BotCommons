@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 /**
- * Deprecated since 1.11-config,  instead
+ * Deprecated since 1.11-config,  instead use {@link ConfigManager} and {@link Config}
  */
 @Deprecated(since = "1.11-config", forRemoval = true)
 @SuppressWarnings("all")

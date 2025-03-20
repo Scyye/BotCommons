@@ -45,7 +45,6 @@ public class CommandInfo {
 	public String help;
 	public String[] aliases;
 	public CommandInfo.Option[] args;
-	public Command.Scope scope;
 	public InteractionContextType[] userContext;
 	public String category;
 	public String permission;
@@ -69,7 +68,6 @@ public class CommandInfo {
 		info.help = annotation.help();
 		info.aliases = annotation.aliases();
 		info.usage = annotation.usage();
-		info.scope = annotation.scope();
 		info.userContext = annotation.userContext();
 		info.category = annotation.category();
 		info.permission = annotation.permission();
@@ -177,7 +175,6 @@ public class CommandInfo {
 				"\"help\":\"" + help + "\"," +
 				"\"aliases\":" + Arrays.toString(aliases) + "," +
 				"\"args\":" + Arrays.toString(args) + "," +
-				"\"scope\":\"" + scope + "\"," +
 				"\"category\":\"" + category + "\"," +
 				"\"permission\":\"" + permission + "\"," +
 				"\"usage\":\"" + usage + "\"," +

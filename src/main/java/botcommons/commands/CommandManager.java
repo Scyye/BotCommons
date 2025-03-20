@@ -103,8 +103,7 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		for (var entry : subcommands.entrySet()) {
-			// TODO: Allow subcommands to have specific contexts: Do later.
-			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey()).setContexts(InteractionContextType.values());
+			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey()).setContexts(InteractionContextType.GUILD, InteractionContextType.BOT_DM, InteractionContextType.PRIVATE_CHANNEL);
 			List<SubcommandData> subcommandData = new ArrayList<>();
 			for (var sub : entry.getValue()) {
 				CommandInfo info = sub.getKey();
@@ -128,10 +127,12 @@ public class CommandManager extends ListenerAdapter {
 				confirmedData.add(dad);
 		}
 
-		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 ->
-				System.out.println(commands1 + " commands registered\n"+commands1.stream().map(
-						command -> command.getSubcommands().size()).toList()
-				));
+		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 -> {
+			System.out.printf("Successfully registered %d commands\n", commands1.size());
+			for (var command : commands1) {
+				System.out.printf("Registered command %s\n", command.getName());
+			}
+		});
 	}
 
 	@Override
@@ -211,22 +212,6 @@ public class CommandManager extends ListenerAdapter {
 		if (!event.getMember().hasPermission(Permission.valueOf(info.permission))) {
 			event.replyError("You do not have permission to use this command").finish();
 			return false;
-		}
-
-		switch (info.scope) {
-			case GUILD -> {
-				if (!event.isGuild()) {
-					event.replyError("This command can only be used in a guild").finish();
-					return false;
-				}
-			}
-			case DM -> {
-				if (event.isGuild()) {
-					event.getUser().openPrivateChannel().queue(privateChannel ->
-							event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention()).finish());
-					return false;
-				}
-			}
 		}
 		return true;
 	}

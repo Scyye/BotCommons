@@ -17,12 +17,6 @@ public @interface Command {
 	String usage() default "";
 	String category() default "GENERAL";
 	String permission() default "MESSAGE_SEND";
-	Scope scope() default Scope.BOTH;
 	InteractionContextType[] userContext() default {InteractionContextType.GUILD, InteractionContextType.BOT_DM};
 
-	enum Scope {
-		GUILD,
-		DM,
-		BOTH
-	}
 }
