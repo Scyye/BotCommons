@@ -18,6 +18,8 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -26,6 +28,7 @@ import java.util.function.Function;
 public class CommandManager extends ListenerAdapter {
 	private static final HashMap<CommandInfo, Method> commands = new HashMap<>();
 	private static final HashMap<String, List<Map.Entry<CommandInfo, Method>>> subcommands = new HashMap<>();
+	static Logger logger = LoggerFactory.getLogger(CommandManager.class);
 
 	private CommandManager() {}
 
@@ -128,9 +131,9 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 -> {
-			System.out.printf("Successfully registered %d commands\n", commands1.size());
+			logger.debug("Successfully registered {} commands", commands1.size());
 			for (var command : commands1) {
-				System.out.printf("Registered command %s\n", command.getName());
+				logger.debug("Registered command: {}", command.getName());
 			}
 		});
 	}
