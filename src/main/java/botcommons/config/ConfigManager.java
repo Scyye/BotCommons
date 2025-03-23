@@ -85,21 +85,19 @@ public class ConfigManager {
 	public static class Config {
 		private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 		private final Map<String, String> config = new HashMap<>();
+		private transient final Map<String, Type> configTypes = new HashMap<>();
 
 		public void put(String key, Object value) {
-			if (value != null) {
-				config.put(key, GSON.toJson(value));
-			}
+			config.put(key, GSON.toJson(value));
+			configTypes.put(key, value.getClass());
 		}
 
 		public <T> T get(String key, Class<T> type) {
-			String json = config.get(key);
-			return json != null ? GSON.fromJson(json, type) : null;
+			return GSON.fromJson(config.get(key), type);
 		}
 
-		public <T> T get(String key, Type type) {
-			String json = config.get(key);
-			return json != null ? GSON.fromJson(json, type) : null;
+		public Object getObject(String key) {
+			return GSON.fromJson(config.get(key), configTypes.get(key));
 		}
 
 		public boolean missingKey(String key) {
@@ -110,9 +108,12 @@ public class ConfigManager {
 			return List.copyOf(config.keySet());
 		}
 
-		@Override
-		public String toString() {
-			return GSON.toJson(this.config);
+		private static <T> T fromJson(String json, Class<T> type) {
+			return type == String.class ? type.cast(json) : GSON.fromJson(json, type);
+		}
+
+		private static String stringify(Object value) {
+			return value instanceof String ? (String) value : GSON.toJson(value);
 		}
 	}
 }
