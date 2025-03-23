@@ -14,8 +14,8 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,20 +23,26 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class CacheManager extends ListenerAdapter {
+	private CacheManager() {}
+
 	public static final HashMap<String, List<MemberStructure>> guildMemberCache = new HashMap<>();
 	public static final HashMap<String, List<GuildStructure>> mutualGuildsCache = new HashMap<>();
 	public static final HashMap<String, List<MessageStructure>> channelMessageCache = new HashMap<>();
-	public static final HashMap<MemberStructure, List<MessageStructure>> userMessageCache = new HashMap<>();
+	public static final HashMap<String, List<MessageStructure>> userMessageCache = new HashMap<>();
 	public static final HashMap<String, User> userCache = new HashMap<>();
 
-	public static void init(JDA jda) {
+	public static void init(JDA jda, boolean guildMembers, boolean mutualGuilds, boolean channelMessages, boolean userMessages, boolean users) {
+		if (jda == null) throw new IllegalArgumentException("JDA instance cannot be null");
+		if (!guildMembers && !mutualGuilds && !channelMessages && !userMessages && !users) throw new IllegalArgumentException("At least one cache must be enabled");
 		jda.addEventListener(new CacheManager());
-		JsonUtils.createCache(guildMemberCache, "guild_member_cache");
-		JsonUtils.createCache(mutualGuildsCache, "mutual_guilds_cache");
-		JsonUtils.createCache(channelMessageCache, "channel_message_cache");
-		JsonUtils.createCache(userMessageCache, "user_message_cache");
 
-		JsonUtils.createCache(userCache, "user_cache");
+
+
+		if (guildMembers) JsonUtils.createCache(guildMemberCache, "guild_member_cache");
+		if (mutualGuilds) JsonUtils.createCache(mutualGuildsCache, "mutual_guilds_cache");
+		if (channelMessages) JsonUtils.createCache(channelMessageCache, "channel_message_cache");
+		if (userMessages) JsonUtils.createCache(userMessageCache, "user_message_cache");
+		if (users) JsonUtils.createCache(userCache, "user_cache");
 	}
 
 	public static void update() {
@@ -56,8 +62,8 @@ public class CacheManager extends ListenerAdapter {
 
 		if (event.getMember() == null) return;
 
-		userMessageCache.putIfAbsent(MemberStructure.fromMember(event.getMember()), new ArrayList<>());
-		userMessageCache.get(MemberStructure.fromMember(event.getMember())).add(MessageStructure.fromMessage(event.getMessage()));
+		userMessageCache.putIfAbsent(event.getAuthor().getId(), new ArrayList<>());
+		userMessageCache.get(event.getAuthor().getId()).add(MessageStructure.fromMessage(event.getMessage()));
 		update();
 	}
 
@@ -100,9 +106,9 @@ public class CacheManager extends ListenerAdapter {
 		update();
 	}
 
-	public record MessageStructure(MessageChannel channel, MessageCreateData data, String id) {
+	public record MessageStructure(String id, String content, String contentDisplay, ChannelStructure channel, @Nullable MemberStructure author) {
 		static MessageStructure fromMessage(Message message) {
-			return new MessageStructure(message.getChannel(), MessageCreateData.fromMessage(message), message.getId());
+			return new MessageStructure(message.getId(), message.getContentRaw(), message.getContentDisplay(), ChannelStructure.fromChannel(message.getGuildChannel()), MemberStructure.fromMember(message.getMember()));
 		}
 	}
 
@@ -118,9 +124,9 @@ public class CacheManager extends ListenerAdapter {
 		}
 	}
 
-	public record MemberStructure(String id, String guild) {
+	public record MemberStructure(String id, GuildStructure guild, String name) {
 		static MemberStructure fromMember(Member member) {
-			return new MemberStructure(member.getId(), member.getGuild().getId());
+			return new MemberStructure(member.getId(), GuildStructure.fromGuild(member.getGuild()), member.getEffectiveName());
 		}
 	}
 }
