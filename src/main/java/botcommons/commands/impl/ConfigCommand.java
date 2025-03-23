@@ -37,8 +37,7 @@ public class ConfigCommand {
         if (value == null) {
             String configValue = config.get(key, String.class);
             event.replySuccess("Value for key " + key + " is " + configValue).finish();
-            return;
-        } else {
+		} else {
             if (config.missingKey(key)) {
                 event.replyError("Key " + key + " does not exist.").finish();
                 return;

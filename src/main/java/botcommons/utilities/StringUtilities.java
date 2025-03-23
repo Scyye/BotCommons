@@ -2,12 +2,16 @@ package botcommons.utilities;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.HashMap;
 
+@SuppressWarnings({"unused", "ignore"})
 public class StringUtilities {
 	public static String botName = "null";
+	static Logger logger = LoggerFactory.getLogger(StringUtilities.class);
 
 	public static HashMap<String, String> stringifyMap(HashMap<?, ?> map) {
 		HashMap<String, String> stringMap = new HashMap<>();
@@ -27,7 +31,8 @@ public class StringUtilities {
 		// botName-assets is the default asset path, append the given path to it
 		Path p = Path.of(botName + "-assets", path.toString());
 		// Create the directories leading to the file if they don't exist
-		p.toFile().getParentFile().mkdirs();
+		if (!p.toFile().getParentFile().mkdirs())
+			logger.debug("Directory wasn't created, it probably already exists");
 		return p;
 	}
 }
