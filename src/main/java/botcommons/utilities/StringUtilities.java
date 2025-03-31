@@ -11,7 +11,7 @@ import java.util.Map;
 
 @SuppressWarnings({"unused", "ignore"})
 public class StringUtilities {
-	public static String botName = "null";
+	public static String botName = "default";
 	static Logger logger = LoggerFactory.getLogger(StringUtilities.class);
 
 	public static HashMap<String, String> stringifyMap(HashMap<?, ?> map) {
