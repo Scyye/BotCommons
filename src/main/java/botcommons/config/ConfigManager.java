@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unused")
 @Experimental
@@ -23,7 +24,7 @@ public class ConfigManager {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private final String assetPath;
 	@Getter
-	private final Map<String, Config> configs = new HashMap<>();
+	private final Map<String, Config> configs = new ConcurrentHashMap<>();
 	@Getter
 	private static ConfigManager instance;
 
