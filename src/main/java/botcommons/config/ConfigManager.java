@@ -54,13 +54,41 @@ public class ConfigManager {
 	}
 
 	private void writeConfigToFile(String serverId, Config config) {
-		try {
-			Path configPath = Path.of(assetPath, "server-configs", serverId + ".json");
-			Files.createDirectories(configPath.getParent());
-			Files.writeString(configPath, GSON.toJson(config));
-		} catch (IOException e) {
-			e.printStackTrace();
+		final int MAX_RETRIES = 3;
+		int attempts = 0;
+		boolean success = false;
+
+		while (!success && attempts < MAX_RETRIES) {
+			attempts++;
+			try {
+				Path configPath = Path.of(assetPath, "server-configs", serverId + ".json");
+				Files.createDirectories(configPath.getParent());
+				Files.writeString(configPath, GSON.toJson(config));
+				success = true;
+				System.out.println("[ConfigManager] Successfully wrote config for server " + serverId);
+			} catch (IOException e) {
+				String errorMsg = String.format("[ConfigManager] Failed to write config for server %s (Attempt %d/%d): %s",
+						serverId, attempts, MAX_RETRIES, e.getMessage());
+				System.err.println(errorMsg);
+
+				if (attempts >= MAX_RETRIES) {
+					System.err.println("[ConfigManager] Max retries reached for writing config. Operating with in-memory config only for server " + serverId);
+					e.printStackTrace();
+				} else {
+					// Wait before retrying (with exponential backoff)
+					try {
+						Thread.sleep(500L * attempts);
+					} catch (InterruptedException ie) {
+						Thread.currentThread().interrupt();
+						System.err.println("[ConfigManager] Interrupted while waiting to retry config write");
+						break;
+					}
+				}
+			}
 		}
+
+		// Ensure configs map is always updated regardless of file write success
+		configs.put(serverId, config);
 	}
 
 	private class ConfigListener extends ListenerAdapter {
