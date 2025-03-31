@@ -37,6 +37,12 @@ public class MenuManager extends ListenerAdapter {
 	}
 
 	public static void registerMenuWithId(String id, IMenu menu) {
+		if (id == null || id.isEmpty()) {
+			throw new IllegalArgumentException("Menu ID cannot be null or empty");
+		}
+		if (menu == null) {
+			throw new IllegalArgumentException("Menu cannot be null");
+		}
 		menuRegistry.put(id, menu);
 	}
 
