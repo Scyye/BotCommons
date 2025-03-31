@@ -28,6 +28,8 @@ public abstract class SelectMenu extends BaseMenu {
 
 	@Override
 	public void handle(ButtonInteractionEvent event) {
+		// TODO: fix already replied issue
+		event.deferReply().queue();
 		int index = Integer.parseInt(event.getComponentId().split("_")[1]);
 		getOptions()[index].action.accept(event);
 	}

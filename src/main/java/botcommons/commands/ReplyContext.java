@@ -105,6 +105,13 @@ public class ReplyContext {
 			if (!defer && !interactionEvent.isAcknowledged())
 				interactionEvent.deferReply().queue();
 			MenuManager.replyMenu(menuId, interactionEvent.getHook(), menuArgs.toArray());
+			if (menuId.endsWith("-fake")) {
+				// in 5 minutes, delete the fake menu
+				interactionEvent.getJDA().getGatewayPool().schedule(() -> {
+					MenuManager.menuRegistry.remove(menuId);
+				}, 5, TimeUnit.MINUTES);
+
+			}
 			markAsFinished();
 			return true;
 		}

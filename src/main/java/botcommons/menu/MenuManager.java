@@ -18,13 +18,14 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class MenuManager extends ListenerAdapter {
 	private final JDA jda;
-	private static final Map<String, IMenu> menuRegistry = new HashMap<>();
+	public static final Map<String, IMenu> menuRegistry = new HashMap<>();
 
 	public static MenuManager instance;
 
 	public MenuManager(JDA jda) {
 		instance = this;
 		this.jda = jda;
+		jda.addEventListener(this);
 	}
 
 	public static void registerMenu(IMenu... menus) {
@@ -33,6 +34,16 @@ public class MenuManager extends ListenerAdapter {
 
 			menuRegistry.put(menuId, menu);
 		}
+	}
+
+	public static void registerMenuWithId(String id, IMenu menu) {
+		if (id == null || id.isEmpty()) {
+			throw new IllegalArgumentException("Menu ID cannot be null or empty");
+		}
+		if (menu == null) {
+			throw new IllegalArgumentException("Menu cannot be null");
+		}
+		menuRegistry.put(id, menu);
 	}
 
 	public static void sendMenu(String menuId, String channelId) {

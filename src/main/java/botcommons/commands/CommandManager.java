@@ -11,12 +11,15 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -25,6 +28,7 @@ import java.util.function.Function;
 public class CommandManager extends ListenerAdapter {
 	private static final HashMap<CommandInfo, Method> commands = new HashMap<>();
 	private static final HashMap<String, List<Map.Entry<CommandInfo, Method>>> subcommands = new HashMap<>();
+	static Logger logger = LoggerFactory.getLogger(CommandManager.class);
 
 	private CommandManager() {}
 
@@ -84,12 +88,21 @@ public class CommandManager extends ListenerAdapter {
 		}
 	}
 
+	private static InteractionContextType[] getSubcommandContexts(List<Map.Entry<CommandInfo, Method>> subcommands) {
+		// Collect all unique context types from subcommands
+		Set<InteractionContextType> contexts = new HashSet<>();
+		for (var sub : subcommands) {
+			Collections.addAll(contexts, sub.getKey().userContext);
+		}
+		return contexts.toArray(new InteractionContextType[0]);
+	}
+
 	@Override
 	public void onReady(@NotNull ReadyEvent event) {
 		List<SlashCommandData> commandData = new ArrayList<>();
 		for (var entry : commands.entrySet()) {
 			CommandInfo info = entry.getKey();
-			SlashCommandData d = Commands.slash(info.name, info.help);
+			SlashCommandData d = Commands.slash(info.name, info.help).setContexts(info.userContext);
 			if (info.args != null)
 				Arrays.stream(info.args).forEachOrdered(option ->
 						d.addOptions(new OptionData(
@@ -102,7 +115,9 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		for (var entry : subcommands.entrySet()) {
-			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey());
+			// TODO: Implement subcommand-specific contexts
+			InteractionContextType[] contexts = getSubcommandContexts(entry.getValue());
+			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey()).setContexts(contexts);
 			List<SubcommandData> subcommandData = new ArrayList<>();
 			for (var sub : entry.getValue()) {
 				CommandInfo info = sub.getKey();
@@ -126,10 +141,12 @@ public class CommandManager extends ListenerAdapter {
 				confirmedData.add(dad);
 		}
 
-		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 ->
-				System.out.println(commands1 + " commands registered\n"+commands1.stream().map(
-						command -> command.getSubcommands().size()).toList()
-				));
+		event.getJDA().updateCommands().addCommands(confirmedData).queue(commands1 -> {
+			logger.debug("Successfully registered {} commands", commands1.size());
+			for (var command : commands1) {
+				logger.debug("Registered command: {}", command.getName());
+			}
+		});
 	}
 
 	@Override
@@ -183,7 +200,6 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		try {
-			// run the method, with it being static.
 			autocompleteMethod.invoke(clazz.getConstructors()[0].newInstance(), event);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -209,22 +225,6 @@ public class CommandManager extends ListenerAdapter {
 		if (!event.getMember().hasPermission(Permission.valueOf(info.permission))) {
 			event.replyError("You do not have permission to use this command").finish();
 			return false;
-		}
-
-		switch (info.scope) {
-			case GUILD -> {
-				if (!event.isGuild()) {
-					event.replyError("This command can only be used in a guild").finish();
-					return false;
-				}
-			}
-			case DM -> {
-				if (event.isGuild()) {
-					event.getUser().openPrivateChannel().queue(privateChannel ->
-							event.replyError("This command can only be used in DMs\n"+privateChannel.getAsMention()).finish());
-					return false;
-				}
-			}
 		}
 		return true;
 	}

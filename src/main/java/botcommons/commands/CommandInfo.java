@@ -1,11 +1,11 @@
 package botcommons.commands;
 
-import com.google.gson.Gson;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,7 @@ public class CommandInfo {
 	public String help;
 	public String[] aliases;
 	public CommandInfo.Option[] args;
-	public Command.Scope scope;
+	public InteractionContextType[] userContext;
 	public String category;
 	public String permission;
 	public String usage = "";
@@ -68,7 +68,7 @@ public class CommandInfo {
 		info.help = annotation.help();
 		info.aliases = annotation.aliases();
 		info.usage = annotation.usage();
-		info.scope = annotation.scope();
+		info.userContext = annotation.userContext();
 		info.category = annotation.category();
 		info.permission = annotation.permission();
 		info.method = command;
@@ -170,6 +170,15 @@ public class CommandInfo {
 
 	@Override
 	public final String toString() {
-		return new Gson().toJson(this);
+		return "{" +
+				"\"name\":\"" + name + "\"," +
+				"\"help\":\"" + help + "\"," +
+				"\"aliases\":" + Arrays.toString(aliases) + "," +
+				"\"args\":" + Arrays.toString(args) + "," +
+				"\"category\":\"" + category + "\"," +
+				"\"permission\":\"" + permission + "\"," +
+				"\"usage\":\"" + usage + "\"," +
+				"\"method\":\"" + method + "\"" +
+				"}";
 	}
 }
