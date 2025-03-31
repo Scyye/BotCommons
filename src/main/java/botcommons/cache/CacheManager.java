@@ -56,6 +56,8 @@ public class CacheManager extends ListenerAdapter {
 	// Message cache code
 	@Override
 	public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+		if (!event.isFromGuild())
+			return;
 		channelMessageCache.putIfAbsent(event.getChannel().getId(), new ArrayList<>());
 		channelMessageCache.get(event.getChannel().getId()).add(MessageStructure.fromMessage(event.getMessage()));
 
@@ -68,6 +70,8 @@ public class CacheManager extends ListenerAdapter {
 
 	@Override
 	public void onMessageDelete(@NotNull MessageDeleteEvent event) {
+		if (!event.isFromGuild())
+			return; // Ignore DMs
 		channelMessageCache.get(event.getChannel().getId()).removeIf(messageStructure -> messageStructure.id().equals(event.getMessageId()));
 		userMessageCache.forEach((member, messageStructures) -> messageStructures.removeIf(messageStructure -> messageStructure.id().equals(event.getMessageId())));
 		update();

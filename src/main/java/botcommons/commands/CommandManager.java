@@ -102,7 +102,7 @@ public class CommandManager extends ListenerAdapter {
 		List<SlashCommandData> commandData = new ArrayList<>();
 		for (var entry : commands.entrySet()) {
 			CommandInfo info = entry.getKey();
-			SlashCommandData d = Commands.slash(info.name, info.help).setContexts(info.userContext);
+			SlashCommandData d = Commands.slash(info.name, info.help).setContexts(InteractionContextType.ALL);
 			if (info.args != null)
 				Arrays.stream(info.args).forEachOrdered(option ->
 						d.addOptions(new OptionData(
@@ -208,7 +208,7 @@ public class CommandManager extends ListenerAdapter {
 	}
 
 	private static boolean checks(CommandInfo info, GenericCommandEvent event, Method cmd) {
-		if (cmd == null || event.getMember() == null) {
+		if (cmd == null || (event.getMember() == null && event.isGuild())) {
 			event.replyError("Command not found").finish();
 			return false;
 		}

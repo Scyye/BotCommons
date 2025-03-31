@@ -18,5 +18,4 @@ public @interface Command {
 	String category() default "GENERAL";
 	String permission() default "MESSAGE_SEND";
 	InteractionContextType[] userContext() default {InteractionContextType.GUILD, InteractionContextType.BOT_DM};
-
 }
