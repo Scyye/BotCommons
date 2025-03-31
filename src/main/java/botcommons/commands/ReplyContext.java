@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
+import okhttp3.internal.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,6 +106,13 @@ public class ReplyContext {
 			if (!defer && !interactionEvent.isAcknowledged())
 				interactionEvent.deferReply().queue();
 			MenuManager.replyMenu(menuId, interactionEvent.getHook(), menuArgs.toArray());
+			if (menuId.endsWith("-fake")) {
+				// in 5 minutes, delete the fake menu
+				interactionEvent.getJDA().getGatewayPool().schedule(() -> {
+					MenuManager.menuRegistry.remove(menuId);
+				}, 5, TimeUnit.MINUTES);
+
+			}
 			markAsFinished();
 			return true;
 		}

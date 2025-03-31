@@ -1,6 +1,10 @@
 package botcommons.commands;
 
 import botcommons.config.ConfigManager;
+import botcommons.menu.IMenu;
+import botcommons.menu.Menu;
+import botcommons.menu.MenuManager;
+import botcommons.menu.types.BaseMenu;
 import com.google.gson.Gson;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -186,5 +190,11 @@ public class GenericCommandEvent {
 
 	public ReplyContext replyMenu(String menuId, Object... args) {
 		return this.replyContext.menu(menuId, args);
+	}
+
+	public ReplyContext replyMenu(String id, BaseMenu menu, Object... args) {
+		MenuManager.registerMenuWithId(id+"-fake", menu);
+		System.out.println("Registered menu with id: " + id);
+		return this.replyContext.menu(id+"-fake", args);
 	}
 }
