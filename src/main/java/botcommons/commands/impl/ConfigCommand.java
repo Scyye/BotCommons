@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 import java.util.stream.Collectors;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ConstantConditions"})
 @CommandHolder
 public class ConfigCommand {
 
@@ -56,9 +56,8 @@ public class ConfigCommand {
                                             configManager.setConfig(serverId, config);
                                             event.getHook().sendMessage("Set " + key + " to " + value).queue();
                                         }),
-                                        new Option("no", (event) -> {
-                                            event.getHook().sendMessage("Cancelled").setEphemeral(true).queue();
-                                        })
+                                        new Option("no", (event) ->
+                                                event.getHook().sendMessage("Cancelled").setEphemeral(true).queue())
                                 };
                             }
                         }
