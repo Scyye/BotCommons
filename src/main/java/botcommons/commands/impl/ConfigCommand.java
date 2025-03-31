@@ -52,13 +52,11 @@ public class ConfigCommand {
                             protected Option[] getOptions() {
                                 return new Option[]{
                                         new Option("yes", (event) -> {
-                                            System.out.println("Yes");
                                             config.put(key, value);
                                             configManager.setConfig(serverId, config);
                                             event.getHook().sendMessage("Set " + key + " to " + value).queue();
                                         }),
                                         new Option("no", (event) -> {
-                                            System.out.println("No");
                                             event.getHook().sendMessage("Cancelled").setEphemeral(true).queue();
                                         })
                                 };
