@@ -16,7 +16,13 @@ import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.HashMap;
 
+/**
+ * Utility class for handling JSON serialization and deserialization using Gson.
+ */
 public class JsonUtils {
+	/**
+	 * The Gson instance used for JSON serialization and deserialization.
+	 */
 	private static final Gson GSON = new GsonBuilder()
 			.setExclusionStrategies(new ExclusionStrategy() {
 				@Override
@@ -35,6 +41,13 @@ public class JsonUtils {
 			.create();
 
 
+	/**
+	 * Create a cache file from a HashMap if it does not already exist.
+	 * @param map The HashMap to serialize into a JSON file. This map will be converted to JSON and saved to a file.
+	 * @param name The name of the cache file to be created. This name will be used to create the file path where the JSON data will be stored. The file will be saved in the "cache" directory with a ".json" extension.
+	 * @param <T> The key type
+	 * @param <V> The value type
+	 */
 	public static <T, V> void createCache(HashMap<T, V> map, String name) {
 		File file = StringUtilities.getAssetPath(Path.of("cache/",name+".json")).toFile();
 		if (file.exists()) return;
@@ -46,6 +59,11 @@ public class JsonUtils {
 		}
 	}
 
+	/**
+	 * Updates the cache file with the contents of the provided HashMap. If the cache file does not exist, it will be created.
+	 * @param map The HashMap to serialize into a JSON file. This map will be merged with existing data in the cache file if it exists.
+	 * @param name The name of the cache file to be updated. This name will be used to create the file path where the JSON data will be stored. The file will be saved in the "cache" directory with a ".json" extension.
+	 */
 	public static void updateCache(HashMap<?, ?> map, String name) {
 		Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 		File file = StringUtilities.getAssetPath(Path.of("cache/", name + ".json")).toFile();

@@ -25,6 +25,11 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 
+/**
+ * This class manages the commands for the bot.
+ * <p>
+ * Call {@link #init(JDA)} to initialize the command manager.
+ */
 public class CommandManager extends ListenerAdapter {
 	private static final HashMap<CommandInfo, Method> commands = new HashMap<>();
 	private static final HashMap<String, List<Map.Entry<CommandInfo, Method>>> subcommands = new HashMap<>();
@@ -34,15 +39,28 @@ public class CommandManager extends ListenerAdapter {
 
 	private static Function<GenericCommandEvent, Boolean> commandRunCheck = ($) -> true;
 
+	/**
+	 * This method initializes the command manager with a JDA instance and a command run check function.
+	 * @param jda The JDA instance to register the commands with.
+	 * @param commandRunCheck A function that takes a {@link GenericCommandEvent} and returns a boolean indicating whether the command should be executed or not.
+	 */
 	public static void init(JDA jda, Function<GenericCommandEvent, Boolean> commandRunCheck) {
 		init(jda);
 		CommandManager.commandRunCheck = commandRunCheck;
 	}
 
+	/**
+	 * This method initializes the command manager with a JDA instance.
+	 * @param jda The JDA instance to register the commands with.
+	 */
 	public static void init(JDA jda) {
 		jda.addEventListener(new CommandManager());
 	}
 
+	/**
+	 * This method adds command holders to the command manager.
+	 * @param holders The classes that hold the commands. Each class should be annotated with {@link CommandHolder}.
+	 */
 	public static void addCommands(Class<?>... holders) {
 		for (var holder : holders) {
 			CommandHolder meta = holder.getAnnotation(CommandHolder.class);
@@ -70,6 +88,10 @@ public class CommandManager extends ListenerAdapter {
 		}
 	}
 
+	/**
+	 * This method adds subcommands to the command manager.
+	 * @param holder The class that holds the subcommands. This class should be annotated with {@link CommandHolder}.
+	 */
 	private static void addSubcommands(Class<?> holder) {
 		CommandHolder meta = holder.getAnnotation(CommandHolder.class);
 		if (meta == null) {
@@ -244,6 +266,11 @@ public class CommandManager extends ListenerAdapter {
 		put(OptionType.UNKNOWN, Object.class);
 	}};
 
+	/**
+	 * This method retrieves the command method associated with a given command string.
+	 * @param command The command string to look up. This can be the name of the command or an alias.
+	 * @return The method associated with the command, or null if no matching command is found.
+	 */
 	public static Method getCommand(String command) {
 		// First, check if the command is a direct match or an alias
 		Method possibleCommand = commands.entrySet().stream()
