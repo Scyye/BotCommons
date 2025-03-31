@@ -32,8 +32,14 @@ public class StringUtilities {
 		// botName-assets is the default asset path, append the given path to it
 		Path p = Path.of(botName + "-assets", path.toString());
 		// Create the directories leading to the file if they don't exist
-		if (!p.toFile().getParentFile().mkdirs())
-			logger.debug("Directory wasn't created, it probably already exists");
+		File parentDir = p.toFile().getParentFile();
+		if (!parentDir.exists()) {
+			if (!parentDir.mkdirs()) {
+				logger.warn("Failed to create directory: {}", parentDir.getAbsolutePath());
+			} else {
+				logger.debug("Created directory: {}", parentDir.getAbsolutePath());
+			}
+		}
 		return p;
 	}
 }
