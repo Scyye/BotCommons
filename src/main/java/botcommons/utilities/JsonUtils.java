@@ -39,7 +39,8 @@ public class JsonUtils {
 		try (FileWriter writer = new FileWriter(file)) {
 			GSON.toJson(map, writer);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger logger = LoggerFactory.getLogger(JsonUtils.class);
+			logger.error("Failed to create cache file for {}: {}", name, e.getMessage(), e);
 		}
 	}
 
