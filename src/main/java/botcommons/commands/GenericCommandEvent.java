@@ -1,8 +1,6 @@
 package botcommons.commands;
 
 import botcommons.config.ConfigManager;
-import botcommons.menu.IMenu;
-import botcommons.menu.Menu;
 import botcommons.menu.MenuManager;
 import botcommons.menu.types.BaseMenu;
 import com.google.gson.Gson;

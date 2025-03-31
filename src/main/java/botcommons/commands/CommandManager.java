@@ -189,7 +189,6 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		try {
-			// run the method, with it being static.
 			autocompleteMethod.invoke(clazz.getConstructors()[0].newInstance(), event);
 		} catch (Exception e) {
 			e.printStackTrace();
