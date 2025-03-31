@@ -45,7 +45,8 @@ public class JsonUtils {
 	}
 
 	public static void updateCache(HashMap<?, ?> map, String name) {
-		File file = StringUtilities.getAssetPath(Path.of("cache/",name+".json")).toFile();
++       Logger logger = LoggerFactory.getLogger(JsonUtils.class);
+		File file = StringUtilities.getAssetPath(Path.of("cache/", name + ".json")).toFile();
 		HashMap<Object, Object> existingData = new HashMap<>();
 
 		// Load existing data if the file exists
@@ -53,9 +54,12 @@ public class JsonUtils {
 			try (FileReader reader = new FileReader(file)) {
 				Type type = new TypeToken<HashMap<?, ?>>() {}.getType();
 				existingData.putAll(GSON.fromJson(reader, type));
-				System.out.println("Loaded existing data from " + file.getName());
+-               System.out.println("Loaded existing data from " + file.getName());
++               logger.debug("Loaded existing data from {}", file.getName());
 			} catch (IOException e) {
-				e.printStackTrace();
+-               e.printStackTrace();
++               logger.error("Failed to read cache file {}: {}", file.getName(), e.getMessage(), e);
++               return; // Avoid writing corrupted data
 			}
 		}
 
@@ -63,11 +67,15 @@ public class JsonUtils {
 		existingData.putAll(map);
 
 		// Write updated data back to the file
-		try (FileWriter writer = new FileWriter(file)) {
-			// error safe json writing
-			GSON.toJson(existingData, writer);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
++       synchronized (JsonUtils.class) { // Basic synchronization for thread safety
+			try (FileWriter writer = new FileWriter(file)) {
+				// error safe json writing
+				GSON.toJson(existingData, writer);
++               logger.debug("Updated cache file {}", file.getName());
+			} catch (IOException e) {
+-               e.printStackTrace();
++               logger.error("Failed to write cache file {}: {}", file.getName(), e.getMessage(), e);
+			}
++       }
 	}
 }
