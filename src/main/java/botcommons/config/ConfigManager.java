@@ -116,6 +116,13 @@ public class ConfigManager {
 		private final Map<String, String> config = new HashMap<>();
 		private transient final Map<String, Type> configTypes = new HashMap<>();
 
+		public void remove(String key) {
+			if (config.containsKey(key)) {
+				config.remove(key);
+				configTypes.remove(key);
+			}
+		}
+
 		public void put(String key, Object value) {
 			config.put(key, GSON.toJson(value));
 			configTypes.put(key, value.getClass());

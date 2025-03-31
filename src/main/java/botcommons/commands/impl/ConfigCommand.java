@@ -20,7 +20,7 @@ public class ConfigCommand {
     @Command(name = "config", help = "Get or set a config value", userContext = {InteractionContextType.GUILD})
     public static void config(GenericCommandEvent event,
                               @Param(description = "The key to get or set", autocomplete = true, required = false) String key,
-                              @Param(description = "The value to set", autocomplete = true, required = false) String value) {
+                              @Param(description = "The value to set (\"-delete\" to remove)", autocomplete = true, required = false) String value) {
         ConfigManager configManager = ConfigManager.getInstance();
         String serverId = event.getGuildId();
         ConfigManager.Config config = configManager.getConfigs().getOrDefault(serverId, configManager.getConfigs().get("default"));
@@ -74,6 +74,17 @@ public class ConfigCommand {
                 return;
             }
 
+            if (value.equals("-delete")) {
+                if (!ConfigManager.getInstance().getConfigs().get("default").missingKey(key)) {
+                    config.remove(key); // Remove the key from the config
+                    configManager.setConfig(serverId, config);
+                    event.replySuccess("Deleted key " + key).finish();
+                } else {
+                    event.replyError("Cannot remove key that is hard-coded.").finish();
+                }
+                return;
+            }
+
             config.put(key, value);
             configManager.setConfig(serverId, config);
             event.replySuccess("Set " + key + " to " + value).finish();
@@ -104,7 +115,7 @@ public class ConfigCommand {
                 return;
             }
             String value = config.get(key, String.class);
-            event.replyChoiceStrings(value).queue();
+            event.replyChoiceStrings(value, "-delete").queue();
         }
     }
 }
