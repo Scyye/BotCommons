@@ -88,6 +88,15 @@ public class CommandManager extends ListenerAdapter {
 		}
 	}
 
+	private static InteractionContextType[] getSubcommandContexts(List<Map.Entry<CommandInfo, Method>> subcommands) {
+		// Collect all unique context types from subcommands
+		Set<InteractionContextType> contexts = new HashSet<>();
+		for (var sub : subcommands) {
+			Collections.addAll(contexts, sub.getKey().userContext);
+		}
+		return contexts.toArray(new InteractionContextType[0]);
+	}
+
 	@Override
 	public void onReady(@NotNull ReadyEvent event) {
 		List<SlashCommandData> commandData = new ArrayList<>();
@@ -106,7 +115,9 @@ public class CommandManager extends ListenerAdapter {
 		}
 
 		for (var entry : subcommands.entrySet()) {
-			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey()).setContexts(InteractionContextType.GUILD, InteractionContextType.BOT_DM, InteractionContextType.PRIVATE_CHANNEL);
+			// TODO: Implement subcommand-specific contexts
+			InteractionContextType[] contexts = getSubcommandContexts(entry.getValue());
+			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey()).setContexts(contexts);
 			List<SubcommandData> subcommandData = new ArrayList<>();
 			for (var sub : entry.getValue()) {
 				CommandInfo info = sub.getKey();
