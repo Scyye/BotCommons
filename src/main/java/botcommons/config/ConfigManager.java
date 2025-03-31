@@ -34,26 +34,54 @@ public class ConfigManager {
 		instance = this;
 	}
 
+	/**
+	 * Initializes the ConfigManager with a default configuration.
+	 * @param config The default configuration to be used if no specific server configuration is found.
+	 */
 	public void setDefault(Config config) {
 		configs.put("default", config);
 	}
 
+	/**
+	 * Sets the config for a server, and writes it to a file.
+	 * @param serverId The ID of the server for which the configuration is being set. This will be used to create a unique file for the server.
+	 * @param config The configuration object to be set for the server. This object will be serialized to JSON and saved to a file named after the server ID.
+	 */
 	public void setConfig(String serverId, Config config) {
 		configs.put(serverId, config);
 		writeConfigToFile(serverId, config);
 	}
 
+	/**
+	 * Sets a specific value in the config for the server
+	 * @param serverId The ID of the server for which the value is being set. This will determine which server's configuration will be updated.
+	 * @param key The key under which the value will be stored in the configuration. This key will be used to retrieve the value later.
+	 * @param value The value to be set in the configuration for the specified key. This can be any object, and it will be serialized to JSON when saved to the configuration file.
+	 */
 	public void setValue(String serverId, String key, Object value) {
 		Config config = configs.getOrDefault(serverId, configs.get("default"));
 		config.put(key, value);
 		writeConfigToFile(serverId, config);
 	}
 
+	/**
+	 * Retrieves a value from the configuration for a specific server.
+	 * @param serverId The ID of the server for which the value is being retrieved. This will determine which server's configuration will be accessed.
+	 * @param key The key for the value you want to retrieve from the configuration. This key should match the one used when setting the value.
+	 * @param type The class type of the value you want to retrieve. This is used to deserialize the JSON value back into the appropriate Java type. For example, if you expect an Integer, you would pass Integer.class.
+	 * @return The value associated with the specified key in the configuration for the given server. The return type will depend on the type parameter provided. If the key does not exist, it will return null.
+	 * @param <T> The type of the value to be returned. This is a generic type parameter that allows the method to return the value in the desired type. For example, if you expect an Integer, you would specify Integer.class when calling this method.
+	 */
 	public <T> T getValue(String serverId, String key, Class<T> type) {
 		Config config = configs.getOrDefault(serverId, configs.get("default"));
 		return config.get(key, type);
 	}
 
+	/**
+	 * Write the configuration to a file for a specific server.
+	 * @param serverId The ID of the server for which the configuration is being written. This will be used to create a unique filename for the configuration file.
+	 * @param config The configuration object to be written to the file. This object will be serialized to JSON and saved to a file named after the server ID.
+	 */
 	private void writeConfigToFile(String serverId, Config config) {
 		final int MAX_RETRIES = 3;
 		int attempts = 0;

@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 
+/**
+ * This class holds information about a command.
+ */
 @SuppressWarnings("unused")
 public class CommandInfo {
 	private static final HashMap<Class<?>, OptionType> optionTypeParams = new HashMap<>() {{
@@ -51,10 +54,20 @@ public class CommandInfo {
 	public String usage = "";
 	public Method method;
 
+	/**
+	 * Get the option with the specified name.
+	 * @param name the name of the option to retrieve
+	 * @return the {@link CommandInfo.Option} with the specified name, or null if no such option exists
+	 */
 	public CommandInfo.Option getOption(String name) {
 		return Arrays.stream(args).filter(option -> option.name.equals(name)).findFirst().orElse(null);
 	}
 
+	/**
+	 * Creates a CommandInfo instance from a method with the {@link Command} annotation.
+	 * @param command the method to create the {@link CommandInfo} from. This method must have the {@link Command} annotation.
+	 * @return a {@link CommandInfo} instance containing the information from the method.
+	 */
 	public static CommandInfo from(@Nullable Method command) {
 		if (command == null)
 			return null;
@@ -96,6 +109,11 @@ public class CommandInfo {
 		return info;
 	}
 
+	/**
+	 * Creates a CommandInfo instance from a {@link GenericCommandEvent}.
+	 * @param event the {@link GenericCommandEvent} to create the {@link CommandInfo} from. This event should be associated with a command.
+	 * @return a {@link CommandInfo} instance containing the information from the event.
+	 */
 	public static CommandInfo from(GenericCommandEvent event) {
 		boolean sub = event.getSubcommandName() != null || event.getSubcommandGroup() != null;
 		String command = sub ? event.getCommandName() + (event.getSubcommandGroup()!=null? " " + event.getSubcommandGroup() + " ": " ") +
@@ -104,6 +122,9 @@ public class CommandInfo {
 		return from(CommandManager.getCommand(command));
 	}
 
+	/**
+	 * Represents an option (argument) for a command.
+	 */
 	@Getter
 	public static class Option {
 		private String name;

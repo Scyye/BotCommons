@@ -77,6 +77,14 @@ public class ReplyContext {
 		return this;
 	}
 
+	/**
+	 * Adds a listener for a specific event type that will only be called once.
+	 * @param eventType The type of event to listen for. This should be a subclass of {@link GenericEvent}.
+	 * @param filter A predicate to filter the events. This allows you to specify conditions for the events that should trigger the listener.
+	 * @param listener The listener function that will be called when the event is received. This should be a function that takes an instance of the event type and returns Void.
+	 * @return The current instance of {@link ReplyContext} for chaining.
+	 * @param <T> The type of the event to listen for. This should be a subclass of {@link GenericEvent}.
+	 */
 	public <T extends GenericEvent> ReplyContext listenOnce(Class<T> eventType, Predicate<T> filter, Function<T, Void> listener) {
 		once = new OnceListener<>(eventType, interactionEvent.getJDA(), filter, listener);
 		if (interactionEvent.getChannel().isDetached()) {
@@ -100,6 +108,11 @@ public class ReplyContext {
 		this.once = null;
 	}
 
+	/**
+	 * This method finalizes the reply context and sends the message to Discord. It will handle all the cases for sending a message, including:
+	 * @param consumer A consumer that will be called with the resulting message after it has been sent. This allows you to perform additional actions on the message, such as logging or further processing.
+	 * @return true if the reply was successfully sent, false otherwise. This method will also mark the reply context as finished.
+	 */
 	public boolean finish(Consumer<Message> consumer) {
 		if (finished)
 			throw new IllegalStateException("ReplyContext already finished");
