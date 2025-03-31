@@ -79,6 +79,11 @@ public class ReplyContext {
 
 	public <T extends GenericEvent> ReplyContext listenOnce(Class<T> eventType, Predicate<T> filter, Function<T, Void> listener) {
 		once = new OnceListener<>(eventType, interactionEvent.getJDA(), filter, listener);
+		if (interactionEvent.getChannel().isDetached()) {
+			throw new IllegalStateException("Cannot listen for events in a detached channel. " +
+					"Ensure the channel is not detached before using listenOnce. " +
+					"Consider using a different event type or method to handle events.");
+		}
 		return this;
 	}
 
