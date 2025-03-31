@@ -6,10 +6,19 @@ import botcommons.commands.AutoCompleteHandler;
 import botcommons.commands.Command;
 import botcommons.commands.CommandHolder;
 import botcommons.commands.Param;
+import botcommons.menu.Menu;
+import botcommons.menu.types.BaseMenu;
+import botcommons.menu.types.PageMenu;
+import botcommons.menu.types.SelectMenu;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
@@ -39,7 +48,32 @@ public class ConfigCommand {
             event.replySuccess("Value for key " + key + " is " + configValue).finish();
 		} else {
             if (config.missingKey(key)) {
-                event.replyError("Key " + key + " does not exist.").finish();
+                // If the key is not present, check if the user wants to create it
+                if (!event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
+                    event.replyError("You do not have permission to set values.").finish();
+                    return;
+                }
+                event.replyMenu(
+                        "yesno",
+                        new SelectMenu() {
+                            @Override
+                            protected Option[] getOptions() {
+                                return new Option[]{
+                                        new Option("yes", (event) -> {
+                                            System.out.println("Yes");
+                                            config.put(key, value);
+                                            configManager.setConfig(serverId, config);
+                                            event.getHook().sendMessage("Set " + key + " to " + value).queue();
+                                        }),
+                                        new Option("no", (event) -> {
+                                            System.out.println("No");
+                                            event.getHook().sendMessage("Cancelled").setEphemeral(true).queue();
+                                        })
+                                };
+                            }
+                        }
+                ).finish();
+
                 return;
             }
 
@@ -73,6 +107,10 @@ public class ConfigCommand {
                 return;
             }
             String key = event.getOption("key").getAsString();
+            if (config.missingKey(key)) {
+                event.replyChoiceStrings("Creating Key").queue();
+                return;
+            }
             String value = config.get(key, String.class);
             event.replyChoiceStrings(value).queue();
         }
