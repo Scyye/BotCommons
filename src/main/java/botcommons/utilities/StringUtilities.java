@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings({"unused", "ignore"})
 public class StringUtilities {
@@ -20,8 +21,8 @@ public class StringUtilities {
 		return stringMap;
 	}
 	@SuppressWarnings("unused")
-	public static <T, V> HashMap<T, V> parseMap(HashMap<String, String> strings, Class<T> keyClass, Class<V> valueClass) {
-		HashMap<T, V> map = new HashMap<>();
+	public static <K, V> Map<K, V> parseMap(HashMap<String, String> strings, Class<K> keyClass, Class<V> valueClass) {
+		HashMap<K, V> map = new HashMap<>();
 		Gson gson = new Gson();
 		strings.forEach((key, value) -> map.put(gson.fromJson(key, keyClass), gson.fromJson(value, valueClass)));
 		return map;
