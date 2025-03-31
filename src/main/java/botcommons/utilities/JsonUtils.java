@@ -4,6 +4,8 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -45,7 +47,7 @@ public class JsonUtils {
 	}
 
 	public static void updateCache(HashMap<?, ?> map, String name) {
-+       Logger logger = LoggerFactory.getLogger(JsonUtils.class);
+		Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 		File file = StringUtilities.getAssetPath(Path.of("cache/", name + ".json")).toFile();
 		HashMap<Object, Object> existingData = new HashMap<>();
 
@@ -54,12 +56,10 @@ public class JsonUtils {
 			try (FileReader reader = new FileReader(file)) {
 				Type type = new TypeToken<HashMap<?, ?>>() {}.getType();
 				existingData.putAll(GSON.fromJson(reader, type));
--               System.out.println("Loaded existing data from " + file.getName());
-+               logger.debug("Loaded existing data from {}", file.getName());
+                logger.debug("Loaded existing data from {}", file.getName());
 			} catch (IOException e) {
--               e.printStackTrace();
-+               logger.error("Failed to read cache file {}: {}", file.getName(), e.getMessage(), e);
-+               return; // Avoid writing corrupted data
+                logger.error("Failed to read cache file {}: {}", file.getName(), e.getMessage(), e);
+                return; // Avoid writing corrupted data
 			}
 		}
 
@@ -67,15 +67,14 @@ public class JsonUtils {
 		existingData.putAll(map);
 
 		// Write updated data back to the file
-+       synchronized (JsonUtils.class) { // Basic synchronization for thread safety
+        synchronized (JsonUtils.class) { // Basic synchronization for thread safety
 			try (FileWriter writer = new FileWriter(file)) {
 				// error safe json writing
 				GSON.toJson(existingData, writer);
-+               logger.debug("Updated cache file {}", file.getName());
+                logger.debug("Updated cache file {}", file.getName());
 			} catch (IOException e) {
--               e.printStackTrace();
-+               logger.error("Failed to write cache file {}: {}", file.getName(), e.getMessage(), e);
+                logger.error("Failed to write cache file {}: {}", file.getName(), e.getMessage(), e);
 			}
-+       }
+	    }
 	}
 }

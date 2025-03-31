@@ -49,6 +49,10 @@ public class GenericCommandEvent {
 		return slashCommandEvent.isFromGuild();
 	}
 
+	public boolean isDetached() {
+		return slashCommandEvent.getChannel().isDetached();
+	}
+
 	@Nullable
 	public Guild getGuild() {
 		return slashCommandEvent.getGuild();
