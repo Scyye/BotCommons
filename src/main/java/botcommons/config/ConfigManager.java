@@ -136,6 +136,8 @@ public class ConfigManager {
 			} else {
 				configs.put(serverId, configs.get("default"));
 			}
+
+			writeConfigToFile(serverId, configs.get(serverId));
 		}
 	}
 

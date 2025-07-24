@@ -24,12 +24,19 @@ public class CommandInfo {
 	private static final HashMap<Class<?>, OptionType> optionTypeParams = new HashMap<>() {{
 		put(String.class, OptionType.STRING);
 		put(Integer.class, OptionType.INTEGER);
+		put(int.class, OptionType.INTEGER);
 		put(Boolean.class, OptionType.BOOLEAN);
+		put(boolean.class, OptionType.BOOLEAN);
 		put(Long.class, OptionType.INTEGER);
+		put(long.class, OptionType.INTEGER);
 		put(Double.class, OptionType.NUMBER);
+		put(double.class, OptionType.NUMBER);
 		put(Float.class, OptionType.NUMBER);
+		put(float.class, OptionType.NUMBER);
 		put(Short.class, OptionType.INTEGER);
+		put(short.class, OptionType.INTEGER);
 		put(Byte.class, OptionType.INTEGER);
+		put(byte.class, OptionType.INTEGER);
 		put(Character.class, OptionType.STRING);
 		put(List.class, OptionType.STRING);
 		put(ArrayList.class, OptionType.STRING);

@@ -61,7 +61,8 @@ public abstract class PageMenu extends BaseMenu {
 	public Button[] getButtons() {
 		return new Button[]{
 				Button.of(ButtonStyle.PRIMARY, "left", Emoji.fromUnicode("⬅️")),
-				Button.of(ButtonStyle.SECONDARY, "right", Emoji.fromUnicode("➡️"))
+				Button.of(ButtonStyle.SECONDARY, "right", Emoji.fromUnicode("➡️")),
+				Button.of(ButtonStyle.DANGER, "end", Emoji.fromUnicode("❌"))
 		};
 	}
 }
