@@ -14,9 +14,10 @@ public class Config extends HashMap<String, Object> {
 	private static Config instance;
 
 	/**
-	 * Creates a config file with the given values and bot name
-	 * @param oldValues The values to put in the config
-	 * @return The {@link Config} object
+	 * Creates a new Config instance from the provided old values and bot name.
+	 * @param oldValues A map containing old values to be used in the configuration. This can include key-value pairs that will be added to the new config.
+	 * @param botName The name of the bot for which the configuration is being created. This will be used to set the "bot-name" key in the configuration.
+	 * @return Returns a new instance of the Config class, which is a HashMap containing the provided old values and additional default values.
 	 */
 	public static Config makeConfig(Map<String, Object> oldValues, String botName) {
 		HashMap<String, String> values = new HashMap<>();
@@ -50,6 +51,12 @@ public class Config extends HashMap<String, Object> {
 		return instance;
 	}
 
+	/**
+	 * Creates a new Config instance from a JSON file.
+	 * @param file The path to the JSON file from which to load the configuration. This file should contain a valid JSON representation of a Config object.
+	 * @return Returns a Config object that has been populated with the data from the specified JSON file. This object will be an instance of the Config class, which extends HashMap<String, Object>.
+	 * @throws IOException If an I/O error occurs while reading the file. This can happen if the file does not exist, is not accessible, or if there are issues with reading the file's contents.
+	 */
 	public static Config makeConfig(String file) throws IOException {
 		Config config = new GsonBuilder().setPrettyPrinting().create()
 				.fromJson(Files.readString(new File(file).toPath()), Config.class);
@@ -86,6 +93,10 @@ public class Config extends HashMap<String, Object> {
 		return get(key.toString(), String.class);
 	}
 
+	/**
+	 * Writes the current configuration to a JSON file.
+	 * @throws IOException If an I/O error occurs while writing to the file. This can happen if the file is not writable, the directory does not exist, or there are permission issues.
+	 */
 	public void write() throws IOException {
 		Files.writeString(Path.of(Config.instance.get("bot-name") + "-assets", "config.json"), toString());
 	}

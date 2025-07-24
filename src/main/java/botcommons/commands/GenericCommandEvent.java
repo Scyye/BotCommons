@@ -24,7 +24,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-// Ignore possible null issues
+/**
+ * This class represents a generic command event for slash commands.
+ * It wraps the {@link SlashCommandInteractionEvent} and provides additional utility methods
+ * for handling command arguments and replies.
+ */
 @SuppressWarnings({"ConstantConditions", "unused"})
 public class GenericCommandEvent {
 	private final SlashCommandInteractionEvent slashCommandEvent;
@@ -35,70 +39,126 @@ public class GenericCommandEvent {
 		this.slashCommandEvent = slashCommandEvent;
 	}
 
+	/**
+	 * Creates a new instance of {@link GenericCommandEvent} from a {@link SlashCommandInteractionEvent}.
+	 * @param event The {@link SlashCommandInteractionEvent} to wrap.
+	 * @return A new instance of {@link GenericCommandEvent} that wraps the provided {@link SlashCommandInteractionEvent}.
+	 */
 	public static GenericCommandEvent of(@NotNull SlashCommandInteractionEvent event) {
 		GenericCommandEvent e = new GenericCommandEvent(event);
 		e.replyContext = new ReplyContext(event);
 		return e;
 	}
 
+	/**
+	 * @return Returns the {@link JDA} instance associated with this command event.
+	 */
 	public JDA getJDA() {
 		return slashCommandEvent.getJDA();
 	}
 
+	/**
+	 * @return Returns true if the command was invoked from a guild (server), false otherwise.
+	 */
 	public boolean isGuild() {
 		return slashCommandEvent.isFromGuild();
 	}
 
+	/**
+	 * @return Returns true if the command was invoked in an area the bot can't access
+	 */
 	public boolean isDetached() {
 		return slashCommandEvent.getChannel().isDetached();
 	}
 
+	/**
+	 * @return Returns the {@link Guild} associated with this command event, or null if the command was invoked in a private channel (DM).
+	 */
 	@Nullable
 	public Guild getGuild() {
 		return slashCommandEvent.getGuild();
 	}
 
+	/**
+	 * @return Returns the ID of the guild associated with this command event.
+	 * If the command was invoked in a private channel (DM), it returns "-1".
+	 */
 	public String getGuildId() {
 		return isGuild()? getGuild().getId():"-1";
 	}
 
+	/**
+	 * @return Returns the user who invoked the command.
+	 */
 	public User getUser() {
 		return slashCommandEvent.getUser();
 	}
 
+	/**
+	 * @return Returns the ID of the user who invoked the command.
+	 */
 	public String getUserId() {
 		return getUser().getId();
 	}
 
+	/**
+	 * @return Returns the member who invoked the command in a guild context, or null if the command was invoked in a private channel (DM).
+	 */
 	@Nullable
 	public Member getMember() {
 		return slashCommandEvent.getMember();
 	}
 
+	/**
+	 * @return The {@link SlashCommandInteraction} associated with this command event.
+	 */
 	public SlashCommandInteraction getSlashCommandInteraction() {
 		return slashCommandEvent.getInteraction();
 	}
 
+	/**
+	 * @return Returns the {@link MessageChannel} where the command was invoked.
+	 */
 	public MessageChannel getChannel() {
 		return slashCommandEvent.getChannel();
 	}
 
+	/**
+	 * @return Returns the name of the command that was invoked.
+	 * This is the name of the slash command as defined when it was registered.
+	 */
 	public String getCommandName() {
 		return slashCommandEvent.getName();
 	}
 
+	/**
+	 * @return Returns the name of the subcommand that was invoked, if applicable.
+	 */
 	public String getSubcommandName() {
 		return slashCommandEvent.getSubcommandName();
 	}
 
+	/**
+	 * @return Returns the name of the subcommand group that was invoked, if applicable.
+	 * This is useful for commands that have subcommand groups.
+	 */
 	public String getSubcommandGroup() {
 		return slashCommandEvent.getSubcommandGroup();
 	}
 
+	/**
+	 * @deprecated Useless, text commands are no longer supported.
+	 * @return Returns true if this command is a slash command. (always)
+	 */
+	@Deprecated(forRemoval = true)
 	boolean isSlashCommand() {
 		return true;
 	}
 
+	/**
+	 * This method retrieves the arguments passed to the command in a structured way.
+	 * @return An array of {@link Data} objects representing the options passed to the command.
+	 */
 	public Data[] getArgs() {
 		return Arrays.stream(slashCommandEvent.getOptions().toArray(OptionMapping[]::new)).map(
 				optionMapping -> {
@@ -124,6 +184,13 @@ public class GenericCommandEvent {
 	}
 
 
+	/**
+	 * This method retrieves the value of a specific argument by its name and casts it to the specified type.
+	 * @param name The name of the argument to retrieve. This should match the name of the option as defined in the command registration.
+	 * @param type The class type to which the argument value should be cast. This allows for type-safe retrieval of the argument value.
+	 * @return The value of the argument cast to the specified type, or null if the argument is not present or cannot be cast to the specified type.
+	 * @param <T> The type of the argument to retrieve. This is a generic type parameter that allows the method to return the value in the desired type.
+	 */
 	public <T> T getArg(String name, Class<T> type) {
 		CommandInfo from = CommandInfo.from(this);
 		CommandInfo.Option option = from.getOption(name);
@@ -147,6 +214,9 @@ public class GenericCommandEvent {
 		return null;
 	}
 
+	/**
+	 * @return Returns the {@link botcommons.config.ConfigManager.Config} associated with the current guild.
+	 */
 	public ConfigManager.Config getConfig() {
 		return ConfigManager.getInstance().getConfigs().get(getGuildId());
 	}
@@ -194,6 +264,13 @@ public class GenericCommandEvent {
 		return this.replyContext.menu(menuId, args);
 	}
 
+	/**
+	 * This method registers a menu with a specific ID and then returns the reply context for that menu.
+	 * @param id The ID to register the menu with. This should be unique to avoid conflicts with other menus.
+	 * @param menu The {@link BaseMenu} instance to register. This represents the menu that will be displayed to the user when they interact with the command.
+	 * @param args Additional arguments to pass to the menu when it is invoked. This allows for dynamic content to be passed into the menu, such as user-specific data or command context.
+	 * @return Returns the {@link ReplyContext} associated with the registered menu. This allows for further customization of the reply context, such as adding more options or handling user interactions with the menu.
+	 */
 	public ReplyContext replyMenu(String id, BaseMenu menu, Object... args) {
 		MenuManager.registerMenuWithId(id+"-fake", menu);
 		System.out.println("Registered menu with id: " + id);
