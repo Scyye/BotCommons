@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.IntegrationType;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +50,8 @@ public class CommandInfo {
 	public String category;
 	public String permission;
 	public String usage = "";
+	public net.dv8tion.jda.api.interactions.commands.Command.Type commandType;
+	public IntegrationType[] integrationTypes;
 	public Method method;
 
 	public CommandInfo.Option getOption(String name) {
@@ -71,6 +74,8 @@ public class CommandInfo {
 		info.userContext = annotation.userContext();
 		info.category = annotation.category();
 		info.permission = annotation.permission();
+		info.commandType = annotation.type();
+		info.integrationTypes = annotation.integrationTypes();
 		info.method = command;
 
 		List<Option> args = new ArrayList<>();

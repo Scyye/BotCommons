@@ -10,11 +10,10 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,35 +26,35 @@ import java.util.function.Predicate;
 // Ignore possible null issues
 @SuppressWarnings({"ConstantConditions", "unused"})
 public class GenericCommandEvent {
-	private final SlashCommandInteractionEvent slashCommandEvent;
+	private final GenericCommandInteractionEvent jdaEvent;
 
 	ReplyContext replyContext;
 
-	private GenericCommandEvent(SlashCommandInteractionEvent slashCommandEvent) {
-		this.slashCommandEvent = slashCommandEvent;
+	private GenericCommandEvent(GenericCommandInteractionEvent event) {
+		jdaEvent = event;
 	}
 
-	public static GenericCommandEvent of(@NotNull SlashCommandInteractionEvent event) {
+	public static GenericCommandEvent of(@NotNull GenericCommandInteractionEvent event) {
 		GenericCommandEvent e = new GenericCommandEvent(event);
 		e.replyContext = new ReplyContext(event);
 		return e;
 	}
 
 	public JDA getJDA() {
-		return slashCommandEvent.getJDA();
+		return jdaEvent.getJDA();
 	}
 
 	public boolean isGuild() {
-		return slashCommandEvent.isFromGuild();
+		return jdaEvent.isFromGuild();
 	}
 
 	public boolean isDetached() {
-		return slashCommandEvent.getChannel().isDetached();
+		return jdaEvent.getChannel().isDetached();
 	}
 
 	@Nullable
 	public Guild getGuild() {
-		return slashCommandEvent.getGuild();
+		return jdaEvent.getGuild();
 	}
 
 	public String getGuildId() {
@@ -63,7 +62,7 @@ public class GenericCommandEvent {
 	}
 
 	public User getUser() {
-		return slashCommandEvent.getUser();
+		return jdaEvent.getUser();
 	}
 
 	public String getUserId() {
@@ -72,27 +71,36 @@ public class GenericCommandEvent {
 
 	@Nullable
 	public Member getMember() {
-		return slashCommandEvent.getMember();
+		return jdaEvent.getMember();
 	}
 
-	public SlashCommandInteraction getSlashCommandInteraction() {
-		return slashCommandEvent.getInteraction();
+	public SlashCommandInteractionEvent getSlash() {
+		return jdaEvent instanceof SlashCommandInteractionEvent sce ? sce : null;
+	}
+	public GenericContextInteractionEvent<?> getGenericContextEvent() {
+		return jdaEvent instanceof GenericContextInteractionEvent<?> gce ? gce : null;
+	}
+	public MessageContextInteractionEvent getMessageContextEvent() {
+		return jdaEvent instanceof MessageContextInteractionEvent mce ? mce : null;
+	}
+	public UserContextInteractionEvent getUserContextEvent() {
+		return jdaEvent instanceof UserContextInteractionEvent uce ? uce : null;
 	}
 
-	public MessageChannel getChannel() {
-		return slashCommandEvent.getChannel();
+	public Channel getChannel() {
+		return jdaEvent.getChannel();
 	}
 
 	public String getCommandName() {
-		return slashCommandEvent.getName();
+		return jdaEvent.getName();
 	}
 
 	public String getSubcommandName() {
-		return slashCommandEvent.getSubcommandName();
+		return jdaEvent.getSubcommandName();
 	}
 
 	public String getSubcommandGroup() {
-		return slashCommandEvent.getSubcommandGroup();
+		return jdaEvent.getSubcommandGroup();
 	}
 
 	boolean isSlashCommand() {
@@ -100,7 +108,7 @@ public class GenericCommandEvent {
 	}
 
 	public Data[] getArgs() {
-		return Arrays.stream(slashCommandEvent.getOptions().toArray(OptionMapping[]::new)).map(
+		return Arrays.stream(jdaEvent.getOptions().toArray(OptionMapping[]::new)).map(
 				optionMapping -> {
 					CommandInfo.Option option = CommandInfo.from(this).getOption(optionMapping.getName());
 					var data = switch (option.getType()) {
@@ -156,7 +164,7 @@ public class GenericCommandEvent {
 	}
 
 	public void deferReply() {
-		slashCommandEvent.deferReply().queue();
+		jdaEvent.deferReply().queue();
 	}
 
 	public boolean reply(String message, Consumer<Message> success) {

@@ -8,16 +8,14 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.GenericContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.IntegrationType;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.interactions.commands.build.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +43,17 @@ public class CommandManager extends ListenerAdapter {
 	}
 
 	public static void addCommands(Class<?>... holders) {
+		List<Object> ignored = new ArrayList<>();
 		for (var holder : holders) {
+			if (ignored.contains(holder)) continue;
+			for (var cmd : holder.getMethods()) {
+				if (cmd.isAnnotationPresent(Command.class)) {
+					CommandInfo info = CommandInfo.from(cmd);
+					CommandManager.commands.put(info, cmd);
+					if (info.commandType!= net.dv8tion.jda.api.interactions.commands.Command.Type.SLASH)
+						ignored.add(cmd);
+				}
+			}
 			CommandHolder meta = holder.getAnnotation(CommandHolder.class);
 			if (meta == null) {
 				throw new IllegalArgumentException("MethodCommandHolder annotation not found on class " + holder.getName());
@@ -100,22 +108,33 @@ public class CommandManager extends ListenerAdapter {
 
 	@Override
 	public void onReady(@NotNull ReadyEvent event) {
-		List<SlashCommandData> commandData = new ArrayList<>();
+		List<CommandData> commandData = new ArrayList<>();
 		for (var entry : commands.entrySet()) {
-			CommandInfo info = entry.getKey();
-			SlashCommandData d = Commands.slash(info.name, info.help).setContexts(info.userContext).setIntegrationTypes(IntegrationType.ALL);
-			if (info.args != null)
-				Arrays.stream(info.args).forEachOrdered(option ->
-						d.addOptions(new OptionData(
-								option.getType(), option.getName(), option.getDescription(),
-								option.isRequired(), option.isAutocomplete())
-								.addChoices(option.getChoices().stream().map(choice ->
-										new net.dv8tion.jda.api.interactions.commands.Command.Choice(choice, choice)).toList())));
+			switch (entry.getKey().commandType) {
+				case SLASH -> {
+					CommandInfo info = entry.getKey();
+					SlashCommandData d = Commands.slash(info.name, info.help).setContexts(info.userContext).setIntegrationTypes(info.integrationTypes);
+					if (info.args != null)
+						Arrays.stream(info.args).forEachOrdered(option ->
+								d.addOptions(new OptionData(
+										option.getType(), option.getName(), option.getDescription(),
+										option.isRequired(), option.isAutocomplete())
+										.addChoices(option.getChoices().stream().map(choice ->
+												new net.dv8tion.jda.api.interactions.commands.Command.Choice(choice, choice)).toList())));
 
-			commandData.add(d);
+					commandData.add(d);
+				}
+				case USER, MESSAGE -> {
+					CommandInfo info = entry.getKey();
+					CommandData d = Commands.context(info.commandType, info.name).setContexts(info.userContext).setIntegrationTypes(info.integrationTypes);
+					commandData.add(d);
+				}
+			}
+
 		}
 
 		for (var entry : subcommands.entrySet()) {
+
 			// TODO: Implement subcommand-specific contexts
 			InteractionContextType[] contexts = getSubcommandContexts(entry.getValue());
 			SlashCommandData d = Commands.slash(entry.getKey(), entry.getKey()).setContexts(contexts).setIntegrationTypes(IntegrationType.ALL);
@@ -135,7 +154,7 @@ public class CommandManager extends ListenerAdapter {
 			commandData.add(d);
 		}
 
-		List<SlashCommandData> confirmedData = new ArrayList<>();
+		List<CommandData> confirmedData = new ArrayList<>();
 		for (var dad : commandData) {
 			if (confirmedData.stream().noneMatch(data1 -> data1.getName().equals(dad.getName()) ||
 					dad.getName().startsWith(data1.getName())))
@@ -156,7 +175,7 @@ public class CommandManager extends ListenerAdapter {
 		CommandInfo info = CommandInfo.from(event);
 
 		if (!commandRunCheck.apply(event)) {
-			if (!event.getSlashCommandInteraction().isAcknowledged()) {
+			if (!event.getSlash().isAcknowledged()) {
 				event.replyError("There was an issue.").ephemeral().finish();
 			}
 			return;
@@ -164,7 +183,41 @@ public class CommandManager extends ListenerAdapter {
 
 		Method cmd = getCommand(slash.getFullCommandName());
 
-		if (!checks(info, event, cmd)) return;
+		if (checks(info, event, cmd)) return;
+
+		try {
+			List<Object> args = new ArrayList<>();
+			args.add(event);
+			for (var option : info.args) {
+				args.add(event.getArg(option.getName(), typeMap.get(option.getType())));
+			}
+			if (cmd != null)
+				cmd.invoke(null, args.toArray());
+			else
+				event.replyError("Could not find the requested command.").finish();
+		} catch (Exception e) {
+			e.printStackTrace();
+			event.replyError("An error occurred while executing this command");
+			if (e.getMessage() != null)
+				event.replyError(e.getMessage().substring(0, Math.min(e.getMessage().length(), 2000))).finish();
+		}
+	}
+
+	@Override
+	public void onGenericContextInteraction(@NotNull GenericContextInteractionEvent<?> generic) {
+		GenericCommandEvent event = GenericCommandEvent.of(generic);
+		CommandInfo info = CommandInfo.from(event);
+
+		if (!commandRunCheck.apply(event)) {
+			if (!event.getSlash().isAcknowledged()) {
+				event.replyError("There was an issue.").ephemeral().finish();
+			}
+			return;
+		}
+
+		Method cmd = getCommand(generic.getFullCommandName());
+
+		if (checks(info, event, cmd)) return;
 
 		try {
 			List<Object> args = new ArrayList<>();
@@ -211,23 +264,23 @@ public class CommandManager extends ListenerAdapter {
 	private static boolean checks(CommandInfo info, GenericCommandEvent event, Method cmd) {
 		if (cmd == null || (event.getMember() == null && event.isGuild())) {
 			event.replyError("Command not found").finish();
-			return false;
+			return true;
 		}
 		if (Config.getInstance().get("owner-id").equals(event.getUser().getId())) {
-			return true;
+			return false;
 		}
 		if (Objects.equals(info.permission, "owner")) {
 			if (!Config.getInstance().get("owner-id").equals(event.getUser().getId())) {
 				event.replyError("You do not have permission to use this command").finish();
-				return false;
+				return true;
 			}
-			return true;
-		} else
-		if (!event.getMember().hasPermission(Permission.valueOf(info.permission))) {
-			event.replyError("You do not have permission to use this command").finish();
 			return false;
+		} else
+		if (!event.isDetached() && !event.getMember().hasPermission(Permission.valueOf(info.permission))) {
+			event.replyError("You do not have permission to use this command").finish();
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	private static final HashMap<OptionType, Class<?>> typeMap = new HashMap<>(){{

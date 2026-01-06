@@ -18,8 +18,9 @@ public class Config extends HashMap<String, Object> {
 	 * @param oldValues The values to put in the config
 	 * @return The {@link Config} object
 	 */
+	// src/main/java/botcommons/config/Config.java
 	public static Config makeConfig(Map<String, Object> oldValues, String botName) {
-		HashMap<String, String> values = new HashMap<>();
+		Map<String, Object> values = new HashMap<>();
 		values.put("bot-name", botName);
 		values.put("token", "TOKEN");
 		values.put("owner-id", "OWNER_ID");
@@ -32,14 +33,10 @@ public class Config extends HashMap<String, Object> {
 				e.printStackTrace();
 			}
 		}
-		new File(botName+"-assets").mkdirs();
+		new File(botName + "-assets").mkdirs();
 		Config config = new Config();
-		oldValues.forEach((key, value) -> {
-			if (value instanceof String)
-				values.put(key, (String) value);
-			else
-				values.put(key, new GsonBuilder().setPrettyPrinting().create().toJson(value));
-		});
+		// preserve object types instead of converting to JSON strings
+		oldValues.forEach(values::put);
 		config.putAll(values);
 		instance = config;
 		try {
@@ -49,6 +46,7 @@ public class Config extends HashMap<String, Object> {
 		}
 		return instance;
 	}
+
 
 	public static Config makeConfig(String file) throws IOException {
 		Config config = new GsonBuilder().setPrettyPrinting().create()

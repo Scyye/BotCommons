@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
@@ -35,13 +35,13 @@ public class ReplyContext {
 	@Nullable
 	private String menuId = null;
 	@NotNull
-	private final SlashCommandInteractionEvent interactionEvent;
+	private final GenericCommandInteractionEvent jdaEvent;
 	private final List<EmbedBuilder> embeds = new ArrayList<>();
 	private final List<Object> menuArgs = new ArrayList<>();
 	private OnceListener<? extends GenericEvent> once;
 
-	public ReplyContext(@NotNull SlashCommandInteractionEvent event) {
-		this.interactionEvent = event;
+	public ReplyContext(@NotNull GenericCommandInteractionEvent event) {
+		this.jdaEvent = event;
 	}
 
 	public List<MessageEmbed> getEmbeds() {
@@ -52,8 +52,8 @@ public class ReplyContext {
 		return menuId;
 	}
 
-	public @NotNull SlashCommandInteractionEvent getInteractionEvent() {
-		return interactionEvent;
+	public @NotNull GenericCommandInteractionEvent getJdaEvent() {
+		return jdaEvent;
 	}
 
 	public ReplyContext content(String content) {
@@ -78,8 +78,8 @@ public class ReplyContext {
 	}
 
 	public <T extends GenericEvent> ReplyContext listenOnce(Class<T> eventType, Predicate<T> filter, Function<T, Void> listener) {
-		once = new OnceListener<>(eventType, interactionEvent.getJDA(), filter, listener);
-		if (interactionEvent.getChannel().isDetached()) {
+		once = new OnceListener<>(eventType, jdaEvent.getJDA(), filter, listener);
+		if (jdaEvent.getChannel().isDetached()) {
 			throw new IllegalStateException("Cannot listen for events in a detached channel. " +
 					"Ensure the channel is not detached before using listenOnce. " +
 					"Consider using a different event type or method to handle events.");
@@ -104,15 +104,15 @@ public class ReplyContext {
 		if (finished)
 			throw new IllegalStateException("ReplyContext already finished");
 		if (once != null) {
-			getInteractionEvent().getJDA().addEventListener(once);
+			jdaEvent.getJDA().addEventListener(once);
 		}
 		if (menuId != null) {
-			if (!defer && !interactionEvent.isAcknowledged())
-				interactionEvent.deferReply().queue();
-			MenuManager.replyMenu(menuId, interactionEvent.getHook(), menuArgs.toArray());
+			if (!defer && !jdaEvent.isAcknowledged())
+				jdaEvent.deferReply().queue();
+			MenuManager.replyMenu(menuId, jdaEvent.getHook(), menuArgs.toArray());
 			if (menuId.endsWith("-fake")) {
 				// in 5 minutes, delete the fake menu
-				interactionEvent.getJDA().getGatewayPool().schedule(() -> {
+				jdaEvent.getJDA().getGatewayPool().schedule(() -> {
 					MenuManager.menuRegistry.remove(menuId);
 				}, 5, TimeUnit.MINUTES);
 
@@ -121,7 +121,7 @@ public class ReplyContext {
 			return true;
 		}
 		if (defer) {
-			interactionEvent.getHook().sendMessage(content).setEmbeds(getEmbeds()).setEphemeral(ephemeral).queue(consumer);
+			jdaEvent.getHook().sendMessage(content).setEmbeds(getEmbeds()).setEphemeral(ephemeral).queue(consumer);
 			markAsFinished();
 			return true;
 		}
@@ -129,20 +129,20 @@ public class ReplyContext {
 		ReplyCallbackAction action = null;
 		WebhookMessageCreateAction<Message> action2 = null;
 		if (content == null && embeds.isEmpty()) {
-			if (!interactionEvent.isAcknowledged())
-				action = interactionEvent.reply("No content provided");
+			if (!jdaEvent.isAcknowledged())
+				action = jdaEvent.reply("No content provided");
 			else
-				action2 = interactionEvent.getHook().sendMessage("No content provided");
+				action2 = jdaEvent.getHook().sendMessage("No content provided");
 		} else if (content == null) {
-			if (!interactionEvent.isAcknowledged())
-				action = interactionEvent.replyEmbeds(getEmbeds());
+			if (!jdaEvent.isAcknowledged())
+				action = jdaEvent.replyEmbeds(getEmbeds());
 			else
-				action2 = interactionEvent.getHook().sendMessageEmbeds(getEmbeds());
+				action2 = jdaEvent.getHook().sendMessageEmbeds(getEmbeds());
 		} else if (embeds.isEmpty()) {
-			if (!interactionEvent.isAcknowledged())
-				action = interactionEvent.reply(content);
+			if (!jdaEvent.isAcknowledged())
+				action = jdaEvent.reply(content);
 			else
-				action2 = interactionEvent.getHook().sendMessage(content);
+				action2 = jdaEvent.getHook().sendMessage(content);
 		}
 
 		if (action!=null)
