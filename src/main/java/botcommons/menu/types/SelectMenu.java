@@ -27,10 +27,21 @@ public abstract class SelectMenu extends BaseMenu {
 
 	@Override
 	public void handle(ButtonInteractionEvent event) {
-		// TODO: fix already replied issue
-		event.deferReply().queue();
-		int index = Integer.parseInt(event.getComponentId().split("_")[1]);
-		getOptions()[index].action.accept(event);
+		// Do not acknowledge here unconditionally. Actions should acknowledge/reply if they need to.
+		String[] parts = event.getComponentId().split("_");
+		if (parts.length < 2) return;
+
+		int index;
+		try {
+			index = Integer.parseInt(parts[1]);
+		} catch (NumberFormatException e) {
+			return;
+		}
+
+		Option[] options = getOptions();
+		if (index < 0 || index >= options.length) return;
+
+		options[index].action.accept(event);
 	}
 
 	@Override
@@ -65,9 +76,9 @@ public abstract class SelectMenu extends BaseMenu {
 	protected abstract Option[] getOptions();
 
 	protected record Option(String name, String description, Consumer<ButtonInteractionEvent> action) {
-			public Option(String name, Consumer<ButtonInteractionEvent> action) {
-				this(name, "", action);
-			}
+		public Option(String name, Consumer<ButtonInteractionEvent> action) {
+			this(name, "", action);
+		}
 
 	}
 }

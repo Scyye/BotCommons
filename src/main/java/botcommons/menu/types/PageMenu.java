@@ -14,31 +14,41 @@ public abstract class PageMenu extends BaseMenu {
 
 	@Override
 	public void handle(ButtonInteractionEvent event) {
-		if (getPages().size()==1 && !event.getComponentId().equalsIgnoreCase("end")) {
-			// clear the buttons if there's only one page
-			event.editMessageEmbeds(getPages().getFirst()).setActionRow(Button.of(
-					ButtonStyle.DANGER,
-					"end",
-					Emoji.fromUnicode("❌")
-			));
-		}
-		if (event.getComponentId().equals("left")) {
-			if (currentPage > 0) {
-				currentPage--;
-			} else {
-				currentPage = getPages().size() - 1;
-			}
-		} else if (event.getComponentId().equals("right")) {
-			if (currentPage < getPages().size() - 1) {
-				currentPage++;
-			} else {
-				currentPage = 0;
-			}
-		} else if (event.getComponentId().equals("end")) {
-			event.getMessage().delete().queue();
+		String compId = event.getComponentId();
+
+		List<MessageEmbed> pages = getPages();
+
+		// If there's only one page, replace buttons with a single "end" button and return
+		if (pages.size() == 1 && !compId.equalsIgnoreCase("end")) {
+			event.editMessageEmbeds(pages.get(0))
+					.setActionRow(Button.of(ButtonStyle.DANGER, "end", Emoji.fromUnicode("❌")))
+					.queue();
 			return;
 		}
-		event.editMessageEmbeds(getPages().get(currentPage)).queue();
+
+		switch (compId) {
+			case "left" -> {
+				if (currentPage > 0) {
+					currentPage--;
+				} else {
+					currentPage = pages.size() - 1;
+				}
+			}
+			case "right" -> {
+				if (currentPage < pages.size() - 1) {
+					currentPage++;
+				} else {
+					currentPage = 0;
+				}
+			}
+			case "end" -> {
+				event.getMessage().delete().queue();
+				return;
+			}
+		}
+
+		// single edit/ack for the interaction
+		event.editMessageEmbeds(pages.get(currentPage)).queue();
 	}
 
 	public abstract List<EmbedBuilder> getPageData();
@@ -54,14 +64,14 @@ public abstract class PageMenu extends BaseMenu {
 
 	@Override
 	public MessageEmbed build() {
-		return getPages().getFirst();
+		return getPages().get(0);
 	}
 
 	@Override
 	public Button[] getButtons() {
 		return new Button[]{
 				Button.of(ButtonStyle.PRIMARY, "left", Emoji.fromUnicode("⬅️")),
-				Button.of(ButtonStyle.SECONDARY, "right", Emoji.fromUnicode("➡️"))
+				Button.of(ButtonStyle.SECONDARY, "right", Emoji.fromUnicode("➡️")),
 		};
 	}
 }

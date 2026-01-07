@@ -22,14 +22,27 @@ public class MenuManager extends ListenerAdapter {
 
 	public static MenuManager instance;
 
-	public MenuManager(JDA jda) {
+	private MenuManager(JDA jda) {
+		System.out.println("Initializing MenuManager");
 		instance = this;
 		this.jda = jda;
 		jda.addEventListener(this);
 	}
 
+	public static void init(JDA jda) {
+		if (instance == null) {
+			new MenuManager(jda);
+		} else {
+			throw new IllegalStateException("MenuManager already initialized.");
+		}
+	}
+
 	public static void registerMenu(IMenu... menus) {
+		if (instance == null) {
+			throw new IllegalStateException("MenuManager not initialized. Please initialize first.");
+		}
 		for (IMenu menu : menus) {
+			System.out.println("Registering menu: " + menu.getClass().getName());
 			String menuId = menu.getClass().getAnnotation(Menu.class).id();
 
 			menuRegistry.put(menuId, menu);
@@ -120,6 +133,7 @@ public class MenuManager extends ListenerAdapter {
 
 	@Override
 	public void onButtonInteraction(ButtonInteractionEvent event) {
+		System.out.println("Button interaction received");
 		String messageId = event.getMessageId();
 		menuRegistry.values().stream()
 				.filter(m -> m.getMessageId() != null && m.getMessageId().equals(messageId))
