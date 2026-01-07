@@ -8,7 +8,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import jdk.jfr.Experimental;
-import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -28,11 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConfigManager {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private final String assetPath;
-	@Getter
 	private final Map<String, Config> configs = new ConcurrentHashMap<>();
-	@Getter
 	private static ConfigManager instance;
 
+	public static ConfigManager getInstance() {
+		return instance;
+	}
+
+	public Map<String, Config> getConfigs() {
+		return configs;
+	}
 	// java
 // Replace constructor and setDefault with these versions
 

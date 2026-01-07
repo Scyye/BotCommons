@@ -1,6 +1,5 @@
 package botcommons.menu.types;
 
-import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -42,7 +41,7 @@ public abstract class SelectMenu extends BaseMenu {
 		int i = 1;
 
 		for (Option option : getOptions()) {
-			builder.addField(option.getName() + " " +numberEmojis.get(i), option.getDescription(), true);
+			builder.addField(option.name + " " +numberEmojis.get(i), option.description, true);
 			i++;
 		}
 
@@ -56,7 +55,7 @@ public abstract class SelectMenu extends BaseMenu {
 		int i = 0;
 
 		for (Option option : getOptions()) {
-			buttons[i] = Button.secondary("select_" +i, numberEmojis.get(i + 1) + " " + option.getName());
+			buttons[i] = Button.secondary("select_" +i, numberEmojis.get(i + 1) + " " + option.name);
 			i++;
 		}
 
@@ -65,22 +64,10 @@ public abstract class SelectMenu extends BaseMenu {
 
 	protected abstract Option[] getOptions();
 
-	@Getter
-	protected static class Option {
-		final String name;
-		final String description;
-		final Consumer<ButtonInteractionEvent> action;
+	protected record Option(String name, String description, Consumer<ButtonInteractionEvent> action) {
+			public Option(String name, Consumer<ButtonInteractionEvent> action) {
+				this(name, "", action);
+			}
 
-		public Option(String name, Consumer<ButtonInteractionEvent> action) {
-			this.name = name;
-			this.description="";
-			this.action = action;
-		}
-
-		public Option(String name, String description, Consumer<ButtonInteractionEvent> action) {
-			this.name = name;
-			this.description = description;
-			this.action = action;
-		}
 	}
 }

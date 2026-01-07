@@ -1,7 +1,6 @@
 package botcommons.commands;
 
 import botcommons.menu.MenuManager;
-import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -26,11 +25,8 @@ import java.util.function.Predicate;
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ReplyContext {
 	private volatile boolean finished = false;
-	@Getter
 	private String content;
-	@Getter
 	private boolean ephemeral = false;
-	@Getter
 	private final boolean defer = false;
 	@Nullable
 	private String menuId = null;
@@ -39,6 +35,18 @@ public class ReplyContext {
 	private final List<EmbedBuilder> embeds = new ArrayList<>();
 	private final List<Object> menuArgs = new ArrayList<>();
 	private OnceListener<? extends GenericEvent> once;
+
+	public String getContent() {
+		return content;
+	}
+
+	public boolean isEphemeral() {
+		return ephemeral;
+	}
+
+	public boolean isDefer() {
+		return defer;
+	}
 
 	public ReplyContext(@NotNull GenericCommandInteractionEvent event) {
 		this.jdaEvent = event;

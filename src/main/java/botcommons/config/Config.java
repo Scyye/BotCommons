@@ -1,7 +1,6 @@
 package botcommons.config;
 
 import com.google.gson.GsonBuilder;
-import lombok.Getter;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -10,7 +9,10 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class Config extends HashMap<String, Object> {
-	@Getter
+	public static Config getInstance() {
+		return instance;
+	}
+
 	private static Config instance;
 
 	/**

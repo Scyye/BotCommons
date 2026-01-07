@@ -1,6 +1,5 @@
 package botcommons.commands;
 
-import lombok.Getter;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -109,8 +108,40 @@ public class CommandInfo {
 		return from(CommandManager.getCommand(command));
 	}
 
-	@Getter
+
 	public static class Option {
+		public List<String> getChoices() {
+			return choices;
+		}
+
+		public Predicate<String> getValidateArg() {
+			return validateArg;
+		}
+
+		public String getDefaultValue() {
+			return defaultValue;
+		}
+
+		public boolean isAutocomplete() {
+			return autocomplete;
+		}
+
+		public boolean isRequired() {
+			return isRequired;
+		}
+
+		public OptionType getType() {
+			return type;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public String getName() {
+			return name;
+		}
+
 		private String name;
 		private String description;
 		private OptionType type;
