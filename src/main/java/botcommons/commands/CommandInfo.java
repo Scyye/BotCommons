@@ -91,7 +91,7 @@ public class CommandInfo {
 					.type(optionTypeParams.getOrDefault(param.getType(), paramAnnotation.type()))
 					.required(paramAnnotation.required())
 					.autocomplete(paramAnnotation.autocomplete())
-					.name(param.getName())
+					.name(paramAnnotation.name().isEmpty() ? param.getName() : paramAnnotation.name())
 					.choices(paramAnnotation.choices());
 
 			args.add(option);

@@ -8,6 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Param {
 	String description();
+	String name() default "";
 	boolean required() default true;
 	String[] choices() default {};
 	boolean autocomplete() default false;
